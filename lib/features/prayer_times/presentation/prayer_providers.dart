@@ -137,3 +137,4 @@ final prayerAlarmProvider =
     StateNotifierProvider<PrayerAlarmNotifier, Map<PrayerType, bool>>((ref) {
   return PrayerAlarmNotifier();
 });
+

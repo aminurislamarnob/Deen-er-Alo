@@ -70,3 +70,4 @@ final fastingProvider =
     StateNotifierProvider<FastingNotifier, FastingState>((ref) {
   return FastingNotifier();
 });
+

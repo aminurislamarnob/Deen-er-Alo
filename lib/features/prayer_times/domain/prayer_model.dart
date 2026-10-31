@@ -141,3 +141,4 @@ class NextPrayerCountdown {
     required this.progress,
   });
 }
+

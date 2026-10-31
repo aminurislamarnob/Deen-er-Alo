@@ -27,3 +27,4 @@ class DeenerAloApp extends StatelessWidget {
     );
   }
 }
+
