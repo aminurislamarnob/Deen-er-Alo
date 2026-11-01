@@ -669,14 +669,14 @@ class HomeScreen extends ConsumerWidget {
         'sub': 'Qibla Direction',
         'icon': LucideIcons.compass,
         'color': const Color(0xFF10B981),
-        'route': '/settings',
+        'route': '/qibla',
       },
       {
         'title': 'ডিজিটাল তাসবীহ',
         'sub': 'Digital Tasbeeh',
         'svg': AppIcons.tasbeehSvg,
         'color': const Color(0xFF3B82F6),
-        'route': '/settings',
+        'route': '/tasbeeh',
       },
       {
         'title': 'আল-কুরআন',
@@ -697,7 +697,7 @@ class HomeScreen extends ConsumerWidget {
         'sub': '99 Names',
         'icon': LucideIcons.sparkles,
         'color': const Color(0xFFEC4899),
-        'route': '/settings',
+        'route': '/names',
       },
       {
         'title': 'নামাজ নিষিদ্ধ সময়',
@@ -725,10 +725,15 @@ class HomeScreen extends ConsumerWidget {
 
         return InkWell(
           onTap: () {
-            if (t['route'] == 'prohibited') {
+            final route = t['route'] as String;
+            if (route == 'prohibited') {
               ProhibitedTimesSheet.show(context);
+            } else if (route == '/qibla' ||
+                route == '/tasbeeh' ||
+                route == '/names') {
+              context.push(route);
             } else {
-              context.go(t['route'] as String);
+              context.go(route);
             }
           },
           borderRadius: BorderRadius.circular(16),

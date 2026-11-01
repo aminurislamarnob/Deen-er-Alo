@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../prayer_times/presentation/city_picker_sheet.dart';
@@ -122,19 +123,19 @@ class SettingsScreen extends ConsumerWidget {
               icon: LucideIcons.compass,
               title: 'Qibla Compass (ক্বিবলা কম্পাস)',
               subtitle: 'Find exact direction to Kaaba',
-              onTap: () => _showUnavailable(context, 'Qibla Compass'),
+              onTap: () => context.push('/qibla'),
             ),
             _buildSettingTile(
               icon: LucideIcons.fingerprint,
               title: 'Digital Tasbeeh (ডিজিটাল তাসবীহ)',
               subtitle: 'Track your daily dhikr',
-              onTap: () => _showUnavailable(context, 'Digital Tasbeeh'),
+              onTap: () => context.push('/tasbeeh'),
             ),
             _buildSettingTile(
               icon: LucideIcons.sparkles,
               title: '99 Names of Allah (আল্লাহর ৯৯টি নাম)',
               subtitle: 'With Bengali meaning & references',
-              onTap: () => _showUnavailable(context, '99 Names of Allah'),
+              onTap: () => context.push('/names'),
             ),
 
             const SizedBox(height: 20),

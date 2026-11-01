@@ -1,96 +1,899 @@
 {
   "meta": {
     "count": 99,
-    "language": "en"
+    "title": "99 Names of Allah (Asmaul Husna)"
   },
   "data": [
     {
       "id": 1,
       "name_arabic": "الله",
       "transliteration": "Allah",
-      "translation": "Allah",
-      "description": "Allah is the one who is worshipped in general, who is the dependent deity and deserving of being the deity and worshipped over all creation. He is endowed with all the qualities of being a deity.",
-      "audio_url": "",
-      "references": {
-        "quran": [
-          {
-            "surah_name": "Al-Baqarah",
-            "surah_number": 2,
-            "ayah_number": 255,
-            "text_arabic": "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ",
-            "text_translation": "Allah - there is no deity except Him, the Ever-Living, the Sustainer of existence."
-          }
-        ],
-        "hadith": [
-          {
-            "source": "Sahih Al-Bukhari",
-            "book_number": 97,
-            "hadith_number": 7392,
-            "text_en": "Allah has ninety-nine names, one hundred minus one, and whoever believes in their meanings and acts accordingly will enter Paradise."
-          }
-        ]
-      }
+      "pronunciation_bn": "আল্লাহ",
+      "meaning_en": "The Greatest Name",
+      "meaning_bn": "মহাবিশ্বের একমাত্র উপাস্য ও প্রতিপালক",
+      "description": "আল্লাহ হচ্ছেন একমাত্র ইলাহ, যিনি সমস্ত সৃষ্টির উপাসনা পাওয়ার একমাত্র যোগ্য।"
     },
     {
       "id": 2,
       "name_arabic": "الرَّحْمَنُ",
       "transliteration": "Ar-Rahman",
-      "translation": "The Most Gracious",
-      "description": "He who wills goodness and mercy for all His creatures. His mercy is all-embracing.",
-      "audio_url": "",
-      "references": {
-        "quran": [
-          {
-            "surah_name": "Al-Fatiha",
-            "surah_number": 1,
-            "ayah_number": 1,
-            "text_arabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-            "text_translation": "In the name of Allah, the Entirely Merciful, the Especially Merciful."
-          },
-          {
-            "surah_name": "Al-Mulk",
-            "surah_number": 67,
-            "ayah_number": 29,
-            "text_arabic": "قُلْ هُوَ الرَّحْمَٰنُ آمَنَّا بِهِ وَعَلَيْهِ تَوَكَّلْنَا",
-            "text_translation": "Say, 'He is the Most Merciful; we have believed in Him, and upon Him we have relied.'"
-          }
-        ],
-        "hadith": [
-          {
-            "source": "Sahih Al-Bukhari",
-            "book_number": 78,
-            "hadith_number": 5999,
-            "text_en": "Allah has one hundred parts of mercy, of which He sent down one between the jinn, mankind, the cattle and the insects..."
-          }
-        ]
-      }
+      "pronunciation_bn": "আর-রহমান",
+      "meaning_en": "The Most Gracious",
+      "meaning_bn": "পরম দয়ালু",
+      "description": "তিনি যিনি সমগ্র সৃষ্টির জন্য অসীম করুণাময় ও দয়ালু।"
     },
     {
       "id": 3,
       "name_arabic": "الرَّحِيمُ",
       "transliteration": "Ar-Rahim",
-      "translation": "The Most Merciful",
-      "description": "He who acts with extreme kindness. The Compassionate, The Merciful.",
-      "audio_url": "",
-      "references": {
-        "quran": [
-          {
-            "surah_name": "Al-Fatiha",
-            "surah_number": 1,
-            "ayah_number": 1,
-            "text_arabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-            "text_translation": "In the name of Allah, the Entirely Merciful, the Especially Merciful."
-          }
-        ],
-        "hadith": [
-          {
-            "source": "Sahih Muslim",
-            "book_number": 32,
-            "hadith_number": 6373,
-            "text_en": "He who is not merciful to others, will not be treated mercifully."
-          }
-        ]
-      }
+      "pronunciation_bn": "আর-রাহীম",
+      "meaning_en": "The Most Merciful",
+      "meaning_bn": "পরম করুণাময়",
+      "description": "মুমিন বান্দাদের জন্য তাঁর রয়েছে বিশেষ ও চিরন্তন দয়া।"
+    },
+    {
+      "id": 4,
+      "name_arabic": "الْمَلِكُ",
+      "transliteration": "Al-Malik",
+      "pronunciation_bn": "আল-মালিক",
+      "meaning_en": "The King / Sovereign",
+      "meaning_bn": "সর্বভৌম ক্ষমতার অধিকারী",
+      "description": "সমগ্র সৃষ্টি ও মহাবিশ্বের একচ্ছত্র ও প্রকৃত বাদশাহ।"
+    },
+    {
+      "id": 5,
+      "name_arabic": "الْقُدُّوسُ",
+      "transliteration": "Al-Quddus",
+      "pronunciation_bn": "আল-কুদ্দুস",
+      "meaning_en": "The Most Holy",
+      "meaning_bn": "নিখুঁত ও মহা পবিত্র",
+      "description": "সকল প্রকার অপূর্ণতা, দোষ-ত্রুটি ও দুর্বলতা থেকে সম্পূর্ণরূপে মুক্ত।"
+    },
+    {
+      "id": 6,
+      "name_arabic": "السَّلَامُ",
+      "transliteration": "As-Salam",
+      "pronunciation_bn": "আস-সালাম",
+      "meaning_en": "The Source of Peace",
+      "meaning_bn": "শান্তিদাতা",
+      "description": "যিনি শান্তি ও নিরাপত্তার মূল উৎস এবং বান্দাকে শান্তি দানকারী।"
+    },
+    {
+      "id": 7,
+      "name_arabic": "الْمُؤْمِنُ",
+      "transliteration": "Al-Mu'min",
+      "pronunciation_bn": "আল-মু'মিন",
+      "meaning_en": "The Bestower of Faith",
+      "meaning_bn": "নিরাপত্তাদাতা",
+      "description": "যিনি তাঁর বান্দাদের ঈমান ও নিরাপত্তা দান করেন এবং প্রতিশ্রুতি রক্ষা করেন।"
+    },
+    {
+      "id": 8,
+      "name_arabic": "الْمُهَيْمِنُ",
+      "transliteration": "Al-Muhaymin",
+      "pronunciation_bn": "আল-মুহাইমিন",
+      "meaning_en": "The Guardian",
+      "meaning_bn": "রক্ষক ও অভিভাবক",
+      "description": "যিনি সবকিছুর উপর পূর্ণ নিয়ন্ত্রণ রাখেন ও প্রত্যক্ষদর্শী অভিভাবক।"
+    },
+    {
+      "id": 9,
+      "name_arabic": "الْعَزِيزُ",
+      "transliteration": "Al-Aziz",
+      "pronunciation_bn": "আল-আযীয",
+      "meaning_en": "The Almighty",
+      "meaning_bn": "পরাক্রমশালী",
+      "description": "যিনি অপ্রতিদ্বন্দ্বী ও অপরাজেয় মহাশক্তিশালী।"
+    },
+    {
+      "id": 10,
+      "name_arabic": "الْجَبَّارُ",
+      "transliteration": "Al-Jabbar",
+      "pronunciation_bn": "আল-জাব্বার",
+      "meaning_en": "The Compeller",
+      "meaning_bn": "মহাপ্রভাবশালী",
+      "description": "যিনি সৃষ্টির যাবতীয় বিষয় স্বীয় ইচ্ছানুযায়ী নিয়ন্ত্রণ ও সংশোধন করেন।"
+    },
+    {
+      "id": 11,
+      "name_arabic": "الْمُتَكَبِّرُ",
+      "transliteration": "Al-Mutakabbir",
+      "pronunciation_bn": "আল-মুতাকাব্বির",
+      "meaning_en": "The Supreme",
+      "meaning_bn": "সর্বশ্রেষ্ঠ মর্যাদাবান",
+      "description": "যিনি শ্রেষ্ঠত্ব ও মহা অহংকারের একমাত্র প্রকৃত অধিকারী।"
+    },
+    {
+      "id": 12,
+      "name_arabic": "الْخَالِقُ",
+      "transliteration": "Al-Khaliq",
+      "pronunciation_bn": "আল-খালিক",
+      "meaning_en": "The Creator",
+      "meaning_bn": "একমাত্র সৃষ্টিকর্তা",
+      "description": "যিনি শূন্য থেকে সকল বস্তুকে অস্তিত্বে এনেছেন।"
+    },
+    {
+      "id": 13,
+      "name_arabic": "الْبَارِئُ",
+      "transliteration": "Al-Bari'",
+      "pronunciation_bn": "আল-বারী",
+      "meaning_en": "The Evolver / Maker",
+      "meaning_bn": "প্রাণ ও অস্তিত্বদানকারী",
+      "description": "যিনি কোনো পূর্ব নমুনা ছাড়াই নিখুঁত সৃষ্টি করেন।"
+    },
+    {
+      "id": 14,
+      "name_arabic": "الْمُصَوِّرُ",
+      "transliteration": "Al-Musawwir",
+      "pronunciation_bn": "আল-মুসাউয়ির",
+      "meaning_en": "The Fashioner",
+      "meaning_bn": "আকৃতি ও রূপদানকারী",
+      "description": "যিনি প্রতিটি সৃষ্টিকে অনুপম রূপ ও অবয়ব দান করেছেন।"
+    },
+    {
+      "id": 15,
+      "name_arabic": "الْغَفَّارُ",
+      "transliteration": "Al-Ghaffar",
+      "pronunciation_bn": "আল-গাফফার",
+      "meaning_en": "The Great Forgiver",
+      "meaning_bn": "মহাক্ষমাশীল",
+      "description": "যিনি বান্দার অগণিত গুনাহ গোপন রাখেন ও বারংবার ক্ষমা করেন।"
+    },
+    {
+      "id": 16,
+      "name_arabic": "الْقَهَّارُ",
+      "transliteration": "Al-Qahhar",
+      "pronunciation_bn": "আল-কাহহার",
+      "meaning_en": "The Subduer",
+      "meaning_bn": "মহাদমনকারী",
+      "description": "সকল সৃষ্টি যাঁর নিরঙ্কুশ ক্ষমতার কাছে পরাভূত ও বাধ্য।"
+    },
+    {
+      "id": 17,
+      "name_arabic": "الْوَهَّابُ",
+      "transliteration": "Al-Wahhab",
+      "pronunciation_bn": "আল-ওয়াহহাব",
+      "meaning_en": "The Bestower",
+      "meaning_bn": "মহাদাতা",
+      "description": "যিনি কোনো প্রতিদান ছাড়াই অগণিত নিয়ামত দান করেন।"
+    },
+    {
+      "id": 18,
+      "name_arabic": "الرَّزَّاقُ",
+      "transliteration": "Ar-Razzaq",
+      "pronunciation_bn": "আর-রাযযাক",
+      "meaning_en": "The Provider",
+      "meaning_bn": "সকলের রিজিকদাতা",
+      "description": "যিনি সকল সৃষ্টির আহার ও জীবনের উপকরণ যোগান দেন।"
+    },
+    {
+      "id": 19,
+      "name_arabic": "الْفَتَّاحُ",
+      "transliteration": "Al-Fattah",
+      "pronunciation_bn": "আল-ফাত্তাহ",
+      "meaning_en": "The Opener",
+      "meaning_bn": "মহাবিজয়ী",
+      "description": "যিনি রহমত ও বিজয়ের সকল রুদ্ধদ্বার উন্মুক্ত করে দেন।"
+    },
+    {
+      "id": 20,
+      "name_arabic": "الْعَلِيمُ",
+      "transliteration": "Al-Alim",
+      "pronunciation_bn": "আল-আলীম",
+      "meaning_en": "The All-Knowing",
+      "meaning_bn": "সর্বজ্ঞাত",
+      "description": "যিনি অতীত, বর্তমান ও ভবিষ্যতের দৃশ্য-অদৃশ্য সব জানেন।"
+    },
+    {
+      "id": 21,
+      "name_arabic": "الْقَابِضُ",
+      "transliteration": "Al-Qabid",
+      "pronunciation_bn": "আল-কাবিদ",
+      "meaning_en": "The Restrainer",
+      "meaning_bn": "সংকোচনকারী",
+      "description": "যিনি স্বীয় হিকমত অনুযায়ী রিজিক ও জীবন সংকুচিত করেন।"
+    },
+    {
+      "id": 22,
+      "name_arabic": "الْبَاسِطُ",
+      "transliteration": "Al-Basit",
+      "pronunciation_bn": "আল-বাসিত",
+      "meaning_en": "The Expander",
+      "meaning_bn": "প্রসারণকারী",
+      "description": "যিনি স্বীয় করুণায় বান্দার রিজিকে প্রাচুর্য ও বিস্তার দান করেন।"
+    },
+    {
+      "id": 23,
+      "name_arabic": "الْخَافِضُ",
+      "transliteration": "Al-Khafid",
+      "pronunciation_bn": "আল-খাফিদ",
+      "meaning_en": "The Abaser",
+      "meaning_bn": "অবনতকারী",
+      "description": "যিনি কাফের ও অহংকারীদের মর্যাদায় পতন ঘটান।"
+    },
+    {
+      "id": 24,
+      "name_arabic": "الرَّافِعُ",
+      "transliteration": "Ar-Rafi",
+      "pronunciation_bn": "আর-রাফি",
+      "meaning_en": "The Exalter",
+      "meaning_bn": "মর্যাদাদানকারী",
+      "description": "যিনি মুমিন ও ধার্মিকদের দুনিয়া ও আখিরাতে সমুন্নত করেন।"
+    },
+    {
+      "id": 25,
+      "name_arabic": "الْمُعِزُّ",
+      "transliteration": "Al-Mu'izz",
+      "pronunciation_bn": "আল-মুইযয",
+      "meaning_en": "The Giver of Honor",
+      "meaning_bn": "সম্মানদাতা",
+      "description": "যিনি যাকে ইচ্ছা সম্মান ও মর্যাদা দান করেন।"
+    },
+    {
+      "id": 26,
+      "name_arabic": "الْمُذِلُّ",
+      "transliteration": "Al-Mudhill",
+      "pronunciation_bn": "আল-মুযিল্ল",
+      "meaning_en": "The Giver of Dishonor",
+      "meaning_bn": "অপমানকারী",
+      "description": "যিনি যাকে ইচ্ছা লাঞ্ছিত ও অপদস্থ করেন।"
+    },
+    {
+      "id": 27,
+      "name_arabic": "السَّمِيعُ",
+      "transliteration": "As-Sami",
+      "pronunciation_bn": "আস-সামী",
+      "meaning_en": "The All-Hearing",
+      "meaning_bn": "সর্বশ্রোতা",
+      "description": "যিনি নিখিল বিশ্বের প্রতিটি গোপন ও প্রকাশ্য ধ্বনি শোনেন।"
+    },
+    {
+      "id": 28,
+      "name_arabic": "الْبَصِيرُ",
+      "transliteration": "Al-Basir",
+      "pronunciation_bn": "আল-বাশীর",
+      "meaning_en": "The All-Seeing",
+      "meaning_bn": "সর্বদ্রষ্টা",
+      "description": "অন্ধকার রাতের কালো পাথরের উপর কালো পিপীলিকার গতিও যিনি দেখেন।"
+    },
+    {
+      "id": 29,
+      "name_arabic": "الْحَكَمُ",
+      "transliteration": "Al-Hakam",
+      "pronunciation_bn": "আল-হাকাম",
+      "meaning_en": "The Judge",
+      "meaning_bn": "প্রকৃত বিচারক",
+      "description": "যিনি সত্য ও মিথ্যার মাঝে পরম ন্যায়সঙ্গত ফয়সালা করেন।"
+    },
+    {
+      "id": 30,
+      "name_arabic": "الْعَدْلُ",
+      "transliteration": "Al-Adl",
+      "pronunciation_bn": "আল-আদল",
+      "meaning_en": "The Utterly Just",
+      "meaning_bn": "পরম ন্যায়পরায়ণ",
+      "description": "যিনি কখনো কারও প্রতি সামান্যতম অবিচার করেন না।"
+    },
+    {
+      "id": 31,
+      "name_arabic": "اللَّطِيفُ",
+      "transliteration": "Al-Latif",
+      "pronunciation_bn": "আল-লাতীফ",
+      "meaning_en": "The Subtle One",
+      "meaning_bn": "পরম স্নেহশীল ও সূক্ষ্মদর্শী",
+      "description": "যিনি অতি সূক্ষ্মদর্শী এবং অদৃশ্য উপায়ে বান্দার কল্যাণ করেন।"
+    },
+    {
+      "id": 32,
+      "name_arabic": "الْخَبِيرُ",
+      "transliteration": "Al-Khabir",
+      "pronunciation_bn": "আল-খাবীর",
+      "meaning_en": "The All-Aware",
+      "meaning_bn": "সর্ববিষয়ে সম্যক অবগত",
+      "description": "যিনি অন্তরের নিভৃততম চিন্তা সম্পর্কেও পরিপূর্ণ জ্ঞাত।"
+    },
+    {
+      "id": 33,
+      "name_arabic": "الْحَلِيمُ",
+      "transliteration": "Al-Halim",
+      "pronunciation_bn": "আল-হালীম",
+      "meaning_en": "The Most Forbearing",
+      "meaning_bn": "পরম ধৈর্যশীল",
+      "description": "যিনি পাপে লিপ্তদের সাথে সাথেই শাস্তি না দিয়ে অবকাশ দেন।"
+    },
+    {
+      "id": 34,
+      "name_arabic": "الْعَظِيمُ",
+      "transliteration": "Al-Azim",
+      "pronunciation_bn": "আল-আযীম",
+      "meaning_en": "The Magnificent",
+      "meaning_bn": "মহামহিম",
+      "description": "যাঁর শ্রেষ্ঠত্ব ও মহত্ত্বের কোনো পরিমাপ নেই।"
+    },
+    {
+      "id": 35,
+      "name_arabic": "الْغَفُورُ",
+      "transliteration": "Al-Ghafur",
+      "pronunciation_bn": "আল-গাফুর",
+      "meaning_en": "The Forgiving",
+      "meaning_bn": "অসীম ক্ষমাশীল",
+      "description": "যিনি বান্দার বারবার করা তাওবা কবুল করেন।"
+    },
+    {
+      "id": 36,
+      "name_arabic": "الشَّكُورُ",
+      "transliteration": "Ash-Shakur",
+      "pronunciation_bn": "আশ-শাকূর",
+      "meaning_en": "The Most Appreciative",
+      "meaning_bn": "গুণগ্রাহী",
+      "description": "যিনি বান্দার সামান্য সৎকাজের বিনিময়ে মহা প্রতিদান দেন।"
+    },
+    {
+      "id": 37,
+      "name_arabic": "الْعَلِيُّ",
+      "transliteration": "Al-Aliyy",
+      "pronunciation_bn": "আল-আলী",
+      "meaning_en": "The Most High",
+      "meaning_bn": "সর্বোচ্চ মর্যাদাবান",
+      "description": "যিনি সকল সৃষ্টির চেয়ে মহিমান্বিত ও সবার উর্ধ্বে।"
+    },
+    {
+      "id": 38,
+      "name_arabic": "الْكَبِيرُ",
+      "transliteration": "Al-Kabir",
+      "pronunciation_bn": "আল-কাবীর",
+      "meaning_en": "The Most Great",
+      "meaning_bn": "সর্বশ্রেষ্ঠ",
+      "description": "যাঁর চেয়ে বড় ও মহান আর কিছুই হতে পারে না।"
+    },
+    {
+      "id": 39,
+      "name_arabic": "الْحَفِيظُ",
+      "transliteration": "Al-Hafiz",
+      "pronunciation_bn": "আল-হাফীয",
+      "meaning_en": "The Preserver",
+      "meaning_bn": "মহাহেফাজতকারী",
+      "description": "যিনি আসমান-জমিন ও সকল সৃষ্টিকে ধ্বংসের হাত থেকে রক্ষা করেন।"
+    },
+    {
+      "id": 40,
+      "name_arabic": "الْمُقِيتُ",
+      "transliteration": "Al-Muqit",
+      "pronunciation_bn": "আল-মুক্বীত",
+      "meaning_en": "The Sustainer",
+      "meaning_bn": "খাদ্য ও শক্তি যোগানদাতা",
+      "description": "যিনি সকলের প্রয়োজনীয় খাদ্য ও আত্মিক পুষ্টির যোগান দেন।"
+    },
+    {
+      "id": 41,
+      "name_arabic": "الْحَسِيبُ",
+      "transliteration": "Al-Hasib",
+      "pronunciation_bn": "আল-হাসীব",
+      "meaning_en": "The Reckoner",
+      "meaning_bn": "যথেষ্ট সাহায্যকারী",
+      "description": "যিনি বান্দার হিসাব গ্রহণে ও সাহায্যে একাই যথেষ্ট।"
+    },
+    {
+      "id": 42,
+      "name_arabic": "الْجَلِيلُ",
+      "transliteration": "Al-Jalil",
+      "pronunciation_bn": "আল-জালীল",
+      "meaning_en": "The Majestic",
+      "meaning_bn": "মহিমান্বিত",
+      "description": "যিনি অতুলনীয় মর্যাদা ও প্রতাপের অধিকারী।"
+    },
+    {
+      "id": 43,
+      "name_arabic": "الْكَرِيمُ",
+      "transliteration": "Al-Karim",
+      "pronunciation_bn": "আল-কারীম",
+      "meaning_en": "The Most Generous",
+      "meaning_bn": "পরম দাতা ও সম্মানিত",
+      "description": "যিনি বিনাচাহিতেই অবারিত নিয়ামত বর্ষণ করেন।"
+    },
+    {
+      "id": 44,
+      "name_arabic": "الرَّقِيبُ",
+      "transliteration": "Ar-Raqib",
+      "pronunciation_bn": "আর-রাক্বীব",
+      "meaning_en": "The Watchful",
+      "meaning_bn": "সর্বদা পর্যবেক্ষণকারী",
+      "description": "যাঁর নজরদারি থেকে এক মুহূর্তের জন্যও কিছু বিচ্ছিন্ন নয়।"
+    },
+    {
+      "id": 45,
+      "name_arabic": "الْمُجِيبُ",
+      "transliteration": "Al-Mujib",
+      "pronunciation_bn": "আল-মুজীব",
+      "meaning_en": "The Responsive",
+      "meaning_bn": "সাড়াদানকারী",
+      "description": "যিনি অভাবী ও প্রার্থনাকারীর ডাকে সাড়া দেন ও দোয়া কবুল করেন।"
+    },
+    {
+      "id": 46,
+      "name_arabic": "الْوَاسِعُ",
+      "transliteration": "Al-Wasi",
+      "pronunciation_bn": "আল-ওয়াসী",
+      "meaning_en": "The All-Encompassing",
+      "meaning_bn": "সর্বব্যাপী",
+      "description": "যাঁর জ্ঞান, রহমত ও প্রাচুর্য সব কিছুকে পরিবেষ্টন করে আছে।"
+    },
+    {
+      "id": 47,
+      "name_arabic": "الْحَكِيمُ",
+      "transliteration": "Al-Hakim",
+      "pronunciation_bn": "আল-হাকীম",
+      "meaning_en": "The All-Wise",
+      "meaning_bn": "মহাপ্রজ্ঞাবান",
+      "description": "যাঁর প্রতিটি হুকুম ও সৃষ্টি নিখুঁত প্রজ্ঞায় পরিপূর্ণ।"
+    },
+    {
+      "id": 48,
+      "name_arabic": "الْوَدُودُ",
+      "transliteration": "Al-Wadud",
+      "pronunciation_bn": "আল-ওয়াদূদ",
+      "meaning_en": "The Most Loving",
+      "meaning_bn": "পরম স্নেহময় ও প্রেমময়",
+      "description": "যিনি তাঁর আনুগত্যশীল বান্দাদের ভালোবাসেন ও সন্তুষ্ট হন।"
+    },
+    {
+      "id": 49,
+      "name_arabic": "الْمَجِيدُ",
+      "transliteration": "Al-Majid",
+      "pronunciation_bn": "আল-মাজীদ",
+      "meaning_en": "The Glorious",
+      "meaning_bn": "মহা গৌরবান্বিত",
+      "description": "যাঁর দান ও গৌরব সীমাহীন।"
+    },
+    {
+      "id": 50,
+      "name_arabic": "الْبَاعِثُ",
+      "transliteration": "Al-Ba'ith",
+      "pronunciation_bn": "আল-বা'ইছ",
+      "meaning_en": "The Resurrector",
+      "meaning_bn": "পুনরুত্থানকারী",
+      "description": "যিনি মৃত্যুর পর কিয়ামতের দিন সকলকে পুনরায় জীবিত করবেন।"
+    },
+    {
+      "id": 51,
+      "name_arabic": "الشَّهِيدُ",
+      "transliteration": "Ash-Shahid",
+      "pronunciation_bn": "আশ-শাহীদ",
+      "meaning_en": "The Witness",
+      "meaning_bn": "প্রত্যক্ষদর্শী সাক্ষী",
+      "description": "যাঁর সামনে সৃষ্টির সমস্ত ঘটনা উন্মুক্ত রয়েছে।"
+    },
+    {
+      "id": 52,
+      "name_arabic": "الْحَقُّ",
+      "transliteration": "Al-Haqq",
+      "pronunciation_bn": "আল-হাক্ব",
+      "meaning_en": "The Absolute Truth",
+      "meaning_bn": "একমাত্র চিরন্তন সত্য",
+      "description": "যাঁর অস্তিত্ব শাশ্বত ও অলঙ্ঘনীয় সত্য।"
+    },
+    {
+      "id": 53,
+      "name_arabic": "الْوَكِيلُ",
+      "transliteration": "Al-Wakil",
+      "pronunciation_bn": "আল-ওয়াকীল",
+      "meaning_en": "The Trustee",
+      "meaning_bn": "উত্তম অভিভাবক",
+      "description": "যাঁর উপর পূর্ণ আস্থা ও ভরসা রাখা যায়।"
+    },
+    {
+      "id": 54,
+      "name_arabic": "الْقَوِيُّ",
+      "transliteration": "Al-Qawiyy",
+      "pronunciation_bn": "আল-ক্বাভী",
+      "meaning_en": "The All-Strong",
+      "meaning_bn": "মহা শক্তিশালী",
+      "description": "যাঁর শক্তি অক্ষয় ও ক্লান্তিহীন।"
+    },
+    {
+      "id": 55,
+      "name_arabic": "الْمَتِينُ",
+      "transliteration": "Al-Matin",
+      "pronunciation_bn": "আল-মাতীন",
+      "meaning_en": "The Firm",
+      "meaning_bn": "সুদৃঢ় ও অটল",
+      "description": "যাঁর পরাক্রম ও সামর্থ্য কখনও শিথিল হয় না।"
+    },
+    {
+      "id": 56,
+      "name_arabic": "الْوَلِيُّ",
+      "transliteration": "Al-Waliyy",
+      "pronunciation_bn": "আল-ওয়ালী",
+      "meaning_en": "The Protecting Friend",
+      "meaning_bn": "পরম বন্ধু ও সহায়",
+      "description": "যিনি মুমিনদের সার্বক্ষণিক অভিভাবক ও সাহায্যকারী।"
+    },
+    {
+      "id": 57,
+      "name_arabic": "الْحَمِيدُ",
+      "transliteration": "Al-Hamid",
+      "pronunciation_bn": "আল-হামীদ",
+      "meaning_en": "The Praiseworthy",
+      "meaning_bn": "প্রশংসার একমাত্র যোগ্য",
+      "description": "যিনি তাঁর নিজ সত্তা ও কর্মের গুণে সর্বত্র প্রশংসিত।"
+    },
+    {
+      "id": 58,
+      "name_arabic": "الْمُحْصِي",
+      "transliteration": "Al-Muhsi",
+      "pronunciation_bn": "আল-মুহসী",
+      "meaning_en": "The Accounter",
+      "meaning_bn": "গণনাকারী ও পরিমাপক",
+      "description": "যিনি বিশ্বজগতের সবকিছু বিস্তারিত সংখ্যা ও পরিমাপে জানেন।"
+    },
+    {
+      "id": 59,
+      "name_arabic": "الْمُبْدِئُ",
+      "transliteration": "Al-Mubdi'",
+      "pronunciation_bn": "আল-মুবদি",
+      "meaning_en": "The Originator",
+      "meaning_bn": "প্রথম সৃষ্টিকর্তা",
+      "description": "যিনি পূর্ব কোনো অস্তিত্ব ব্যতিরেকেই সৃষ্টি শুরু করেন।"
+    },
+    {
+      "id": 60,
+      "name_arabic": "الْمُعِيدُ",
+      "transliteration": "Al-Mu'id",
+      "pronunciation_bn": "আল-মুঈদ",
+      "meaning_en": "The Restorer",
+      "meaning_bn": "পুনঃসৃষ্টিকারী",
+      "description": "যিনি বিনাশের পর আবার সবকিছু পুনর্গঠন করতে পারেন।"
+    },
+    {
+      "id": 61,
+      "name_arabic": "الْمُحْيِي",
+      "transliteration": "Al-Muhyi",
+      "pronunciation_bn": "আল-মুহয়ী",
+      "meaning_en": "The Giver of Life",
+      "meaning_bn": "জীবনদাতা",
+      "description": "যিনি প্রাণহীন বস্তুর মধ্যে প্রাণের সঞ্চার করেন।"
+    },
+    {
+      "id": 62,
+      "name_arabic": "الْمُمِيتُ",
+      "transliteration": "Al-Mumit",
+      "pronunciation_bn": "আল-মুমীত",
+      "meaning_en": "The Bringer of Death",
+      "meaning_bn": "মৃত্যুদানকারী",
+      "description": "যিনি নির্ধারিত সময়ে জীবিতকে মৃত্যুর স্বাদ গ্রহণ করান।"
+    },
+    {
+      "id": 63,
+      "name_arabic": "الْحَيُّ",
+      "transliteration": "Al-Hayy",
+      "pronunciation_bn": "আল-হাইয়্যু",
+      "meaning_en": "The Ever-Living",
+      "meaning_bn": "চিরঞ্জীব",
+      "description": "যাঁর কোনো সূচনা নেই, বিনাশ নেই, চিরকাল জীবিত।"
+    },
+    {
+      "id": 64,
+      "name_arabic": "الْقَيُّومُ",
+      "transliteration": "Al-Qayyum",
+      "pronunciation_bn": "আল-ক্বাইয়ূম",
+      "meaning_en": "The Self-Subsisting",
+      "meaning_bn": "সর্বধারক",
+      "description": "যিনি স্বয়ংসম্পূর্ণভাবে সমগ্র বিশ্বকে ধারণ করে আছেন।"
+    },
+    {
+      "id": 65,
+      "name_arabic": "الْوَاجِدُ",
+      "transliteration": "Al-Wajid",
+      "pronunciation_bn": "আল-ওয়াজিদ",
+      "meaning_en": "The Perceiver",
+      "meaning_bn": "অভাবহীন প্রাপক",
+      "description": "যাঁর কোনো কিছুর অভাব নেই, যা চান তাই বিদ্যমান।"
+    },
+    {
+      "id": 66,
+      "name_arabic": "الْمَاجِدُ",
+      "transliteration": "Al-Majid",
+      "pronunciation_bn": "আল-মাজিদ",
+      "meaning_en": "The Illustrious",
+      "meaning_bn": "মহিমান্বিত",
+      "description": "যিনি মহত্ত্ব ও উচ্চমর্যাদায় পরিপূর্ণ।"
+    },
+    {
+      "id": 67,
+      "name_arabic": "الْوَاحِدُ",
+      "transliteration": "Al-Wahid",
+      "pronunciation_bn": "আল-ওয়াহিদ",
+      "meaning_en": "The One",
+      "meaning_bn": "এক ও একক",
+      "description": "যাঁর কোনো শরীক ও সমকক্ষ নেই।"
+    },
+    {
+      "id": 68,
+      "name_arabic": "الصَّمَدُ",
+      "transliteration": "As-Samad",
+      "pronunciation_bn": "আস-সামাদ",
+      "meaning_en": "The Eternal / Absolute",
+      "meaning_bn": "অমুখাপেক্ষী",
+      "description": "সকলেই যাঁর মুখাপেক্ষী, কিন্তু তিনি কারও মুখাপেক্ষী নন।"
+    },
+    {
+      "id": 69,
+      "name_arabic": "الْقَادِرُ",
+      "transliteration": "Al-Qadir",
+      "pronunciation_bn": "আল-ক্বাদীর",
+      "meaning_en": "The All-Capable",
+      "meaning_bn": "সর্বশক্তিমান",
+      "description": "যিনি সকল কাজের উপর পূর্ণ সক্ষম।"
+    },
+    {
+      "id": 70,
+      "name_arabic": "الْمُقْتَدِرُ",
+      "transliteration": "Al-Muqtadir",
+      "pronunciation_bn": "আল-মুক্বতাদির",
+      "meaning_en": "The Determiner",
+      "meaning_bn": "প্রভাবশালী শাসক",
+      "description": "যাঁর নির্দেশ ও তাকদীর সর্বত্র কার্যকর।"
+    },
+    {
+      "id": 71,
+      "name_arabic": "الْمُقَدِّمُ",
+      "transliteration": "Al-Muqaddim",
+      "pronunciation_bn": "আল-মুকাদ্দিম",
+      "meaning_en": "The Expediter",
+      "meaning_bn": "অগ্রবর্তীকারী",
+      "description": "যিনি হিকমতের ভিত্তিতে যাকে ইচ্ছা এগিয়ে দেন।"
+    },
+    {
+      "id": 72,
+      "name_arabic": "الْمُؤَخِّرُ",
+      "transliteration": "Al-Mu'akhkhir",
+      "pronunciation_bn": "আল-মুআখখির",
+      "meaning_en": "The Delayer",
+      "meaning_bn": "পশ্চাদ্বর্তীকারী",
+      "description": "যিনি বিচার ও কৌশলগত কারণে যাকে ইচ্ছা পিছিয়ে দেন।"
+    },
+    {
+      "id": 73,
+      "name_arabic": "الأَوَّلُ",
+      "transliteration": "Al-Awwal",
+      "pronunciation_bn": "আল-আউয়াল",
+      "meaning_en": "The First",
+      "meaning_bn": "অনাদি প্রথম",
+      "description": "যাঁর পূর্বে আর কিছুই ছিল না।"
+    },
+    {
+      "id": 74,
+      "name_arabic": "الآخِرُ",
+      "transliteration": "Al-Akhir",
+      "pronunciation_bn": "আল-আখির",
+      "meaning_en": "The Last",
+      "meaning_bn": "অনন্ত শেষ",
+      "description": "সবকিছু ধ্বংস হওয়ার পরও যিনি চিরকাল থাকবেন।"
+    },
+    {
+      "id": 75,
+      "name_arabic": "الظَّاهِرُ",
+      "transliteration": "Az-Zahir",
+      "pronunciation_bn": "আয-যাহির",
+      "meaning_en": "The Manifest",
+      "meaning_bn": "প্রকাশ্য",
+      "description": "সৃষ্টির স্পষ্ট নিদর্শনের মাধ্যমে যাঁর অস্তিত্ব দেদীপ্যমান।"
+    },
+    {
+      "id": 76,
+      "name_arabic": "الْبَاطِنُ",
+      "transliteration": "Al-Batin",
+      "pronunciation_bn": "আল-বাতিন",
+      "meaning_en": "The Hidden",
+      "meaning_bn": "অদৃশ্য অন্তর্যামী",
+      "description": "চর্মচক্ষু যাকে দেখতে পায় না কিন্তু সবকিছুর নিগূঢ় রহস্য যিনি জানেন।"
+    },
+    {
+      "id": 77,
+      "name_arabic": "الْوَالِي",
+      "transliteration": "Al-Wali",
+      "pronunciation_bn": "আল-ওয়ালী",
+      "meaning_en": "The Sole Governor",
+      "meaning_bn": "একচ্ছত্র অধিপতি",
+      "description": "যিনি নিখিল বিশ্বের একক শাসক ও পরিচালক।"
+    },
+    {
+      "id": 78,
+      "name_arabic": "الْمُتَعَالِي",
+      "transliteration": "Al-Muta'ali",
+      "pronunciation_bn": "আল-মুতাআলী",
+      "meaning_en": "The Self Exalted",
+      "meaning_bn": "সর্বোচ্চ সমুন্নত",
+      "description": "যিনি সৃষ্টির যাবতীয় ধারণা ও কল্পনার বহু উর্ধ্বে।"
+    },
+    {
+      "id": 79,
+      "name_arabic": "الْبَرُّ",
+      "transliteration": "Al-Barr",
+      "pronunciation_bn": "আল-বার্",
+      "meaning_en": "The Source of Goodness",
+      "meaning_bn": "পরম সদাচারী ও হিতৈষী",
+      "description": "যিনি সৃষ্টির প্রতি সর্বদা অপার কল্যাণ ও সদাচরণ করেন।"
+    },
+    {
+      "id": 80,
+      "name_arabic": "التَّوَّابُ",
+      "transliteration": "At-Tawwab",
+      "pronunciation_bn": "আত-তাওয়াব",
+      "meaning_en": "The Ever-Pardoning",
+      "meaning_bn": "তওবা কবুলকারী",
+      "description": "যিনি অনুতপ্ত বান্দার পাপ মার্জনা করে তাকে গ্রহণ করেন।"
+    },
+    {
+      "id": 81,
+      "name_arabic": "الْمُنْتَقِمُ",
+      "transliteration": "Al-Muntaqim",
+      "pronunciation_bn": "আল-মুনতাক্বিম",
+      "meaning_en": "The Avenger",
+      "meaning_bn": "ন্যায়সঙ্গত প্রতিশোধ গ্রহণকারী",
+      "description": "যিনি জালিম ও অহংকারীদের সুবিচারের মাধ্যমে পাকড়াও করেন।"
+    },
+    {
+      "id": 82,
+      "name_arabic": "العَفُوُّ",
+      "transliteration": "Al-Afuww",
+      "pronunciation_bn": "আল-আফুউ",
+      "meaning_en": "The Pardoner",
+      "meaning_bn": "মার্জনাশীল",
+      "description": "যিনি অপরাধকে সম্পূর্ণরূপে মুছে ফেলেন।"
+    },
+    {
+      "id": 83,
+      "name_arabic": "الرَّؤُوفُ",
+      "transliteration": "Ar-Ra'uf",
+      "pronunciation_bn": "আর-রাউফ",
+      "meaning_en": "The Most Kind",
+      "meaning_bn": "পরম স্নেহময়",
+      "description": "যাঁর দয়া ও মায়া ভাষায় প্রকাশাতীত।"
+    },
+    {
+      "id": 84,
+      "name_arabic": "مَالِكُ الْمُلْكِ",
+      "transliteration": "Malik-ul-Mulk",
+      "pronunciation_bn": "মালিকুল মুলক",
+      "meaning_en": "Owner of All Sovereignty",
+      "meaning_bn": "সমগ্র রাজত্বের চিরন্তন অধিপতি",
+      "description": "যিনি যাকে ইচ্ছা রাজত্ব দেন এবং যাঁর থেকে ইচ্ছা কেড়ে নেন।"
+    },
+    {
+      "id": 85,
+      "name_arabic": "ذُو الْجَلَالِ وَالإِكْرَامِ",
+      "transliteration": "Dhul-Jalali wal-Ikram",
+      "pronunciation_bn": "যুল জালালি ওয়াল ইকরাম",
+      "meaning_en": "Lord of Glory and Honor",
+      "meaning_bn": "মহিমা ও সম্মানের একমাত্র আধার",
+      "description": "যিনি মর্যাদা, গৌরব ও পরম অনুগ্রহের অধিকারী।"
+    },
+    {
+      "id": 86,
+      "name_arabic": "الْمُقْسِطُ",
+      "transliteration": "Al-Muqsit",
+      "pronunciation_bn": "আল-মুক্বসিত",
+      "meaning_en": "The Equitable",
+      "meaning_bn": "পরম ন্যায়পরায়ণ",
+      "description": "যিনি ভারসাম্য রক্ষা করেন ও ন্যায়ের বিধান দেন।"
+    },
+    {
+      "id": 87,
+      "name_arabic": "الْجَامِعُ",
+      "transliteration": "Al-Jami",
+      "pronunciation_bn": "আল-জামি",
+      "meaning_en": "The Gatherer",
+      "meaning_bn": "সমাবেশকারী",
+      "description": "যিনি কিয়ামতের দিনে সমগ্র মানবজাতিকে সমবেত করবেন।"
+    },
+    {
+      "id": 88,
+      "name_arabic": "الْغَنِيُّ",
+      "transliteration": "Al-Ghaniyy",
+      "pronunciation_bn": "আল-গানী",
+      "meaning_en": "The Self-Sufficient",
+      "meaning_bn": "স্বয়ংসম্পূর্ণ ধনী",
+      "description": "যিনি সকল অভাবমুক্ত ও কারও প্রতি মুখাপেক্ষী নন।"
+    },
+    {
+      "id": 89,
+      "name_arabic": "الْمُغْنِي",
+      "transliteration": "Al-Mughni",
+      "pronunciation_bn": "আল-মুগনী",
+      "meaning_en": "The Enricher",
+      "meaning_bn": "ঐশ্বর্যদাতা",
+      "description": "যিনি বান্দাকে প্রাচুর্য ও সম্পদশালী করেন।"
+    },
+    {
+      "id": 90,
+      "name_arabic": "الْمَانِعُ",
+      "transliteration": "Al-Mani",
+      "pronunciation_bn": "আল-মানি",
+      "meaning_en": "The Preventer",
+      "meaning_bn": "বাধাদানকারী ও রক্ষক",
+      "description": "যিনি বান্দার অকল্যাণ রোধ করেন ও বিপদ প্রতিহত করেন।"
+    },
+    {
+      "id": 91,
+      "name_arabic": "الضَّارُّ",
+      "transliteration": "Ad-Darr",
+      "pronunciation_bn": "আদ-দার",
+      "meaning_en": "The Creator of Harm",
+      "meaning_bn": "পরীক্ষক ও ক্ষতির নিয়ন্তা",
+      "description": "যাঁর অনুমতি ছাড়া কারও কোনো ক্ষতি করার শক্তি নেই।"
+    },
+    {
+      "id": 92,
+      "name_arabic": "النَّافِعُ",
+      "transliteration": "An-Nafi",
+      "pronunciation_bn": "আন-নাফি",
+      "meaning_en": "The Creator of Good",
+      "meaning_bn": "কল্যাণদাতা",
+      "description": "যাঁর করুণা ছাড়া কোনো উপকারের আগমন ঘটে না।"
+    },
+    {
+      "id": 93,
+      "name_arabic": "النُّورُ",
+      "transliteration": "An-Nur",
+      "pronunciation_bn": "আন-নূর",
+      "meaning_en": "The Light",
+      "meaning_bn": "জ্যোতির্ময়",
+      "description": "যাঁর নূরে সমগ্র আসমান ও জমিন আলোকিত।"
+    },
+    {
+      "id": 94,
+      "name_arabic": "الْهَادِي",
+      "transliteration": "Al-Hadi",
+      "pronunciation_bn": "আল-হাদী",
+      "meaning_en": "The Guide",
+      "meaning_bn": "সঠিক পথপ্রদর্শক",
+      "description": "যিনি বান্দাকে সিরাতে মুস্তাকীমের সঠিক দিশা দেন।"
+    },
+    {
+      "id": 95,
+      "name_arabic": "الْبَدِيعُ",
+      "transliteration": "Al-Badi",
+      "pronunciation_bn": "আল-বাদী",
+      "meaning_en": "The Incomparable Originator",
+      "meaning_bn": "অনুপম রূপকার",
+      "description": "যিনি নিখিল বিশ্বকে অতুলনীয় সৌন্দর্যে নির্মাণ করেছেন।"
+    },
+    {
+      "id": 96,
+      "name_arabic": "الْبَاقِي",
+      "transliteration": "Al-Baqi",
+      "pronunciation_bn": "আল-বাক্বী",
+      "meaning_en": "The Everlasting",
+      "meaning_bn": "চিরস্থায়ী ও অবিনশ্বর",
+      "description": "সবকিছু নিঃশেষ হলেও যাঁর অস্তিত্ব চিরন্তন থাকবে।"
+    },
+    {
+      "id": 97,
+      "name_arabic": "الْوَارِثُ",
+      "transliteration": "Al-Warith",
+      "pronunciation_bn": "আল-ওয়ারিস",
+      "meaning_en": "The Ultimate Inheritor",
+      "meaning_bn": "একমাত্র উত্তরাধিকারী",
+      "description": "সকলের বিদায়ের পর যিনি মহাবিশ্বের একমাত্র স্বত্বাধিকারী হবেন।"
+    },
+    {
+      "id": 98,
+      "name_arabic": "الرَّشِيدُ",
+      "transliteration": "Ar-Rashid",
+      "pronunciation_bn": "আর-রাশীদ",
+      "meaning_en": "The Infallible Guide",
+      "meaning_bn": "সঠিক পথের পরিচালক",
+      "description": "যাঁর কর্মপন্থা ও সিদ্ধান্ত সম্পূর্ণ নির্ভুল।"
+    },
+    {
+      "id": 99,
+      "name_arabic": "الصَّبُورُ",
+      "transliteration": "As-Sabur",
+      "pronunciation_bn": "আস-সাবূর",
+      "meaning_en": "The Most Patient",
+      "meaning_bn": "অসীম ধৈর্যশীল",
+      "description": "যিনি পাপীদের দ্রুত শাস্তি না দিয়ে অপরিসীম ধৈর্য প্রকাশ করেন।"
     }
   ]
 }
