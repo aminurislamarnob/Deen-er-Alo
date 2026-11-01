@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/location_service.dart';
+import '../../../core/utils/city_clock.dart';
 import '../data/city_repository.dart';
 import '../data/ifa_timetable_service.dart';
 import '../data/prayer_engine.dart';
@@ -51,7 +51,8 @@ class SelectedCityNotifier extends StateNotifier<AsyncValue<CityModel>> {
   }
 
   Future<bool> detectLocation() async {
-    state = const AsyncValue.loading();
+    // Keep showing the previous city while detecting (no flicker to Dhaka).
+    state = const AsyncLoading<CityModel>().copyWithPrevious(state);
     try {
       final position = await _locationService.getCurrentPosition();
       if (position != null) {
@@ -68,7 +69,7 @@ class SelectedCityNotifier extends StateNotifier<AsyncValue<CityModel>> {
         return false;
       }
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      state = AsyncError<CityModel>(e, st).copyWithPrevious(state);
       return false;
     }
   }
@@ -81,43 +82,89 @@ final selectedCityProvider =
   return SelectedCityNotifier(cityRepo, locationService);
 });
 
-// Selected Date Provider (Defaults to today)
-final selectedDateProvider = StateProvider<DateTime>((ref) {
-  return DateTime.now();
-});
-
-// Real-time Clock Stream (ticks every 1 second)
+// Real-time clock (device instant, ticks every second).
 final clockStreamProvider = StreamProvider.autoDispose<DateTime>((ref) {
   return Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
 });
 
-// Day Prayer Times Provider
-final dayPrayerTimesProvider = FutureProvider<DayPrayerTimes>((ref) async {
-  final cityAsync = ref.watch(selectedCityProvider);
-  final date = ref.watch(selectedDateProvider);
-  final engine = ref.watch(prayerEngineProvider);
-
-  final city = cityAsync.value ?? CityModel.dhakaDefault();
-  return await engine.calculateDayPrayers(city: city, date: date);
+/// IANA zone of the selected city (null = device zone).
+final cityTimeZoneProvider = Provider<String?>((ref) {
+  final city = ref.watch(selectedCityProvider).valueOrNull;
+  return (city ?? CityModel.dhakaDefault()).effectiveTimeZone;
 });
 
-// Real-time Countdown Provider
-final countdownProvider = Provider.autoDispose<NextPrayerCountdown?>((ref) {
-  final dayPrayersAsync = ref.watch(dayPrayerTimesProvider);
-  final nowAsync = ref.watch(clockStreamProvider);
+/// Current wall-clock time in the selected city. Ticks every second.
+final cityNowProvider = Provider.autoDispose<DateTime>((ref) {
+  final zone = ref.watch(cityTimeZoneProvider);
+  final instant = ref.watch(clockStreamProvider).valueOrNull ?? DateTime.now();
+  return CityClock.toWall(instant, zone);
+});
+
+/// Today's date in the selected city. Only notifies when the date changes,
+/// which gives every dependant an automatic midnight rollover.
+final todayDateProvider = Provider.autoDispose<DateTime>((ref) {
+  return CityClock.dateOnly(ref.watch(cityNowProvider));
+});
+
+/// Date browsed on the Prayers tab. Independent from "today" so browsing
+/// never changes the Home dashboard, countdown, widgets or alarms.
+final selectedDateProvider = StateProvider<DateTime>((ref) {
+  return CityClock.dateOnly(CityClock.now(ref.read(cityTimeZoneProvider)));
+});
+
+/// Today's prayer schedule for the selected city (Home, alarms, widgets).
+final todayPrayerTimesProvider =
+    FutureProvider.autoDispose<DayPrayerTimes>((ref) async {
+  final city =
+      ref.watch(selectedCityProvider).valueOrNull ?? CityModel.dhakaDefault();
+  final date = ref.watch(todayDateProvider);
   final engine = ref.watch(prayerEngineProvider);
+  return engine.calculateDayPrayers(city: city, date: date);
+});
 
-  final dayPrayers = dayPrayersAsync.value;
+/// Today's schedule with `isCurrent`/`isNext` refreshed every second.
+final liveTodayPrayerTimesProvider =
+    Provider.autoDispose<AsyncValue<DayPrayerTimes>>((ref) {
+  final engine = ref.watch(prayerEngineProvider);
+  final now = ref.watch(cityNowProvider);
+  return ref
+      .watch(todayPrayerTimesProvider)
+      .whenData((day) => engine.markCurrent(day, now));
+});
+
+/// Prayer schedule for the date browsed on the Prayers tab.
+final dayPrayerTimesProvider =
+    FutureProvider.autoDispose<DayPrayerTimes>((ref) async {
+  final city =
+      ref.watch(selectedCityProvider).valueOrNull ?? CityModel.dhakaDefault();
+  final date = ref.watch(selectedDateProvider);
+  final engine = ref.watch(prayerEngineProvider);
+  return engine.calculateDayPrayers(city: city, date: date);
+});
+
+/// Browsed schedule with live `isCurrent` flags (only today's can be current).
+final liveDayPrayerTimesProvider =
+    Provider.autoDispose<AsyncValue<DayPrayerTimes>>((ref) {
+  final engine = ref.watch(prayerEngineProvider);
+  final now = ref.watch(cityNowProvider);
+  return ref
+      .watch(dayPrayerTimesProvider)
+      .whenData((day) => engine.markCurrent(day, now));
+});
+
+/// Live countdown to the next waqt — always based on *today*.
+final countdownProvider = Provider.autoDispose<NextPrayerCountdown?>((ref) {
+  final dayPrayers = ref.watch(todayPrayerTimesProvider).valueOrNull;
   if (dayPrayers == null) return null;
-
-  final now = nowAsync.value ?? DateTime.now();
+  final now = ref.watch(cityNowProvider);
+  final engine = ref.watch(prayerEngineProvider);
   return engine.calculateCountdown(dayPrayers: dayPrayers, now: now);
 });
 
-// Prohibited Times Providers
+// Prohibited Times Providers (today)
 final prohibitedTimesProvider =
     Provider.autoDispose<List<ProhibitedTimeRange>>((ref) {
-  final dayPrayers = ref.watch(dayPrayerTimesProvider).value;
+  final dayPrayers = ref.watch(todayPrayerTimesProvider).valueOrNull;
   if (dayPrayers == null) return [];
   final engine = ref.watch(prayerEngineProvider);
   return engine.getProhibitedTimes(dayPrayers);
@@ -125,52 +172,22 @@ final prohibitedTimesProvider =
 
 final currentProhibitedTimeProvider =
     Provider.autoDispose<ProhibitedTimeRange?>((ref) {
-  final dayPrayers = ref.watch(dayPrayerTimesProvider).value;
+  final dayPrayers = ref.watch(todayPrayerTimesProvider).valueOrNull;
   if (dayPrayers == null) return null;
-  final now = ref.watch(clockStreamProvider).value ?? DateTime.now();
+  final now = ref.watch(cityNowProvider);
   final engine = ref.watch(prayerEngineProvider);
   return engine.getCurrentProhibitedTime(dayPrayers, now);
 });
 
-// Prayer Alarm Notification Toggles (Persisted to SharedPreferences)
-class PrayerAlarmNotifier extends StateNotifier<Map<PrayerType, bool>> {
-  static const String _prefPrefix = 'pref_prayer_alarm_';
-
-  PrayerAlarmNotifier()
-      : super({
-          PrayerType.fajr: true,
-          PrayerType.dhuhr: false,
-          PrayerType.asr: false,
-          PrayerType.maghrib: true,
-          PrayerType.isha: false,
-        }) {
-    _loadAlarms();
+/// The currently active waqt today (null between sunrise and Dhuhr).
+/// Changes only at waqt boundaries, so widgets that watch it rebuild rarely.
+final currentPrayerTypeProvider = Provider.autoDispose<PrayerType?>((ref) {
+  final day = ref.watch(todayPrayerTimesProvider).valueOrNull;
+  if (day == null) return null;
+  final engine = ref.watch(prayerEngineProvider);
+  final marked = engine.markCurrent(day, ref.watch(cityNowProvider));
+  for (final item in marked.scheduleItems) {
+    if (item.isCurrent) return item.type;
   }
-
-  Future<void> _loadAlarms() async {
-    final prefs = await SharedPreferences.getInstance();
-    final Map<PrayerType, bool> map = {};
-    for (final type in PrayerType.values) {
-      if (type == PrayerType.sunrise) continue;
-      final key = '$_prefPrefix${type.name}';
-      map[type] = prefs.getBool(key) ?? state[type] ?? false;
-    }
-    state = map;
-  }
-
-  Future<void> toggleAlarm(PrayerType type) async {
-    final current = state[type] ?? false;
-    final updated = !current;
-    state = {
-      ...state,
-      type: updated,
-    };
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('$_prefPrefix${type.name}', updated);
-  }
-}
-
-final prayerAlarmProvider =
-    StateNotifierProvider<PrayerAlarmNotifier, Map<PrayerType, bool>>((ref) {
-  return PrayerAlarmNotifier();
+  return null;
 });

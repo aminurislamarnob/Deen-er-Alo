@@ -221,8 +221,10 @@ class NotificationService {
       iOS: iosDetails,
     );
 
+    // `scheduledDate` is an absolute instant; tz.UTC avoids any dependence
+    // on the (uninitialised) tz.local zone.
+    final tzTime = tz.TZDateTime.from(scheduledDate.toUtc(), tz.UTC);
     try {
-      final tzTime = tz.TZDateTime.from(scheduledDate, tz.local);
       await _notifications.zonedSchedule(
         id,
         title,
@@ -235,8 +237,64 @@ class NotificationService {
         payload: payload,
       );
     } catch (e) {
-      debugPrint('Failed to schedule exact alarm for $scheduledDate: $e');
+      // Exact alarms can be denied (Android 12+/14+). Fall back to an inexact
+      // alarm so the user is still reminded, possibly a few minutes late.
+      debugPrint('Exact alarm failed for $scheduledDate ($e); using inexact.');
+      try {
+        await _notifications.zonedSchedule(
+          id,
+          title,
+          body,
+          tzTime,
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          payload: payload,
+        );
+      } catch (e2) {
+        debugPrint('Failed to schedule alarm for $scheduledDate: $e2');
+      }
     }
+  }
+
+  /// Whether exact alarms are currently permitted (always true off Android).
+  Future<bool> canScheduleExactAlarms() async {
+    if (!Platform.isAndroid) return true;
+    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    return await androidPlugin?.canScheduleExactNotifications() ?? true;
+  }
+
+  /// Whether the app may post notifications.
+  Future<bool> areNotificationsEnabled() async {
+    if (Platform.isAndroid) {
+      final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      return await androidPlugin?.areNotificationsEnabled() ?? true;
+    }
+    return true;
+  }
+
+  /// Requests only the runtime notification permission (Android 13+ / iOS).
+  /// Safe to call at startup: it shows the system dialog at most once.
+  Future<bool> requestNotificationPermission() async {
+    if (Platform.isAndroid) {
+      final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      return await androidPlugin?.requestNotificationsPermission() ?? true;
+    }
+    if (Platform.isIOS) {
+      final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
+      return await iosPlugin?.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          ) ??
+          false;
+    }
+    return true;
   }
 
   Future<void> cancel(int id) async {

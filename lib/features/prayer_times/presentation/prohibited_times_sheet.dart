@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/bangla_numbers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import 'prayer_providers.dart';
@@ -21,7 +21,6 @@ class ProhibitedTimesSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final prohibitedTimes = ref.watch(prohibitedTimesProvider);
     final currentProhibited = ref.watch(currentProhibitedTimeProvider);
-    final timeFormat = DateFormat('hh:mm a');
 
     return SafeArea(
       top: false,
@@ -165,7 +164,7 @@ class ProhibitedTimesSheet extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          '${timeFormat.format(item.startTime)} - ${timeFormat.format(item.endTime)}',
+                          '${BanglaUtils.formatBanglaTime(item.startTime)} - ${BanglaUtils.formatBanglaTime(item.endTime)}',
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,

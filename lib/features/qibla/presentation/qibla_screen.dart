@@ -18,14 +18,31 @@ class QiblaScreen extends ConsumerStatefulWidget {
 }
 
 class _QiblaScreenState extends ConsumerState<QiblaScreen> {
-  bool _wasAligned = false;
   double _manualHeading = 0.0;
 
-  void _triggerHapticOnAlignment(bool isAligned) {
-    if (isAligned && !_wasAligned) {
+  /// The state actually shown: sensor heading, or the manual slider heading
+  /// when the device has no compass.
+  QiblaCompassModel _effective(QiblaCompassModel s) {
+    return QiblaCompassModel(
+      userHeading: s.hasSensor ? s.userHeading : _manualHeading,
+      qiblaBearing: s.qiblaBearing,
+      hasSensor: s.hasSensor,
+      accuracy: s.accuracy,
+      isLoading: s.isLoading,
+    );
+  }
+
+  void _hapticIfBecameAligned(bool wasAligned, bool isAligned) {
+    if (isAligned && !wasAligned) {
       HapticFeedback.mediumImpact();
     }
-    _wasAligned = isAligned;
+  }
+
+  void _onManualHeadingChanged(double value) {
+    final current = ref.read(qiblaStateProvider);
+    final wasAligned = _effective(current).isAligned;
+    setState(() => _manualHeading = value);
+    _hapticIfBecameAligned(wasAligned, _effective(current).isAligned);
   }
 
   String _toBnNumber(String input) {
@@ -42,19 +59,17 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
     final qiblaState = ref.watch(qiblaStateProvider);
     final cityName = city?.name ?? 'ঢাকা';
 
-    // If device doesn't have sensor, allow manual simulation
-    final currentHeading = qiblaState.hasSensor
-        ? qiblaState.userHeading
-        : _manualHeading;
-    final effectiveState = QiblaCompassModel(
-      userHeading: currentHeading,
-      qiblaBearing: qiblaState.qiblaBearing,
-      hasSensor: qiblaState.hasSensor,
-      accuracy: qiblaState.accuracy,
-    );
-    final isAligned = effectiveState.isAligned;
+    // Haptic only on the transition into the aligned state (not per build).
+    ref.listen<QiblaCompassModel>(qiblaStateProvider, (previous, next) {
+      final wasAligned = previous != null && _effective(previous).isAligned;
+      _hapticIfBecameAligned(wasAligned, _effective(next).isAligned);
+    });
 
-    _triggerHapticOnAlignment(isAligned);
+    // If device doesn't have sensor, allow manual simulation
+    final effectiveState = _effective(qiblaState);
+    final currentHeading = effectiveState.userHeading;
+    final isLoading = effectiveState.isLoading;
+    final isAligned = effectiveState.isAligned;
 
     return Scaffold(
       backgroundColor: AppColors.primaryDark,
@@ -172,7 +187,9 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
               Column(
                 children: [
                   Text(
-                    '${_toBnNumber(currentHeading.toStringAsFixed(0))}°',
+                    isLoading
+                        ? '--°'
+                        : '${_toBnNumber(currentHeading.toStringAsFixed(0))}°',
                     style: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.w900,
@@ -182,7 +199,9 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
                     ),
                   ),
                   Text(
-                    qiblaState.cardinalDirectionBn,
+                    isLoading
+                        ? 'অপেক্ষা করুন…'
+                        : effectiveState.cardinalDirectionBn,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -196,11 +215,15 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
 
               // Rotating Compass Dial
               Center(
-                child: QiblaCompassDial(
-                  heading: currentHeading,
-                  qiblaBearing: qiblaState.qiblaBearing,
-                  isAligned: isAligned,
-                  size: 280,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: isLoading ? 0.4 : 1.0,
+                  child: QiblaCompassDial(
+                    heading: currentHeading,
+                    qiblaBearing: qiblaState.qiblaBearing,
+                    isAligned: isAligned,
+                    size: 280,
+                  ),
                 ),
               ),
 
@@ -241,7 +264,9 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isAligned
+                            isLoading
+                                ? 'সেন্সর চালু হচ্ছে…'
+                                : isAligned
                                 ? 'আলহামদুলিল্লাহ! আপনি ক্বিবলামুখী আছেন'
                                 : effectiveState.deltaAngle > 0
                                 ? 'ফোনটি ${_toBnNumber(effectiveState.deltaAngle.abs().toStringAsFixed(0))}° বামে ঘুরান'
@@ -256,7 +281,9 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            isAligned
+                            isLoading
+                                ? 'কম্পাসের তথ্য পাওয়া মাত্র দিকনির্দেশনা দেখানো হবে।'
+                                : isAligned
                                 ? 'সরাসরি কাবার অভিমুখে লক্ষ্য স্থির হয়েছে।'
                                 : 'সবুজ সূচক সোজা না হওয়া পর্যন্ত ডিভাইসটি সমান্তরালভাবে ঘুরান।',
                             style: const TextStyle(
@@ -325,15 +352,18 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
                             ),
                           ),
                           Expanded(
-                            child: Slider(
-                              value: _manualHeading,
-                              min: 0,
-                              max: 360,
-                              activeColor: AppColors.primary,
-                              inactiveColor: AppColors.cardBorder,
-                              onChanged: (val) {
-                                setState(() => _manualHeading = val);
-                              },
+                            child: Semantics(
+                              label: 'ম্যানুয়াল কোণ নির্বাচন (ডিগ্রি)',
+                              child: Slider(
+                                value: _manualHeading,
+                                min: 0,
+                                max: 360,
+                                activeColor: AppColors.primary,
+                                inactiveColor: AppColors.cardBorder,
+                                semanticFormatterCallback: (val) =>
+                                    '${_toBnNumber(val.toStringAsFixed(0))} ডিগ্রি',
+                                onChanged: _onManualHeadingChanged,
+                              ),
                             ),
                           ),
                         ],

@@ -1,119 +1,87 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:intl/intl.dart';
 import '../../features/prayer_times/domain/city_model.dart';
 import '../../features/prayer_times/domain/prayer_model.dart';
 import '../utils/bangla_numbers.dart';
+import '../utils/city_clock.dart';
 
+/// Pushes a multi-day schedule to the native home screen widgets.
+///
+/// Widgets compute the current/next waqt themselves from epoch instants and
+/// count down with a native `Chronometer`, so they stay live and roll over at
+/// prayer boundaries and midnight without the app running. Display strings are
+/// pre-formatted on the city's wall clock.
 class WidgetSyncService {
   WidgetSyncService._();
   static final WidgetSyncService instance = WidgetSyncService._();
 
-  Future<void> syncAllWidgets({
+  static const String scheduleKey = 'widget_schedule_v2';
+
+  static const List<String> _androidProviders = [
+    'SaomTimerWidgetProvider',
+    'DaySummaryWidgetProvider',
+    'PrayerListWidgetProvider',
+  ];
+
+  /// Builds the JSON payload (pure; unit-testable).
+  static Map<String, dynamic> buildPayload({
     required CityModel city,
-    required DayPrayerTimes dayPrayers,
-    required String hijriDateString,
-    String? currentWaqtName,
-    String? nextWaqtName,
-    DateTime? nextWaqtTime,
-    Duration? remainingDuration,
+    required List<DayPrayerTimes> days,
+    required String Function(DateTime cityDate) hijriLabel,
+  }) {
+    final zone = city.effectiveTimeZone;
+    int ms(DateTime wall) =>
+        CityClock.toInstant(wall, zone).millisecondsSinceEpoch;
+    String hm(DateTime wall) =>
+        BanglaUtils.toBanglaDigits(DateFormat('hh:mm').format(wall));
+
+    return {
+      'version': 2,
+      'city': city.name,
+      'days': [
+        for (final day in days)
+          {
+            'date': DateFormat('yyyy-MM-dd').format(day.date),
+            'start': ms(day.date),
+            'end': ms(DateTime(day.date.year, day.date.month, day.date.day + 1)),
+            'hijri': hijriLabel(day.date),
+            'sehri': ms(day.sehriEnd ?? day.fajr),
+            'sehriText': BanglaUtils.formatBanglaTime(day.sehriEnd ?? day.fajr),
+            'iftar': ms(day.iftar ?? day.maghrib),
+            'iftarText': BanglaUtils.formatBanglaTime(day.iftar ?? day.maghrib),
+            'prayers': [
+              for (final item in day.scheduleItems)
+                if (item.type.isFard)
+                  {
+                    'key': item.type.name,
+                    'name': item.type.bengaliName,
+                    'start': ms(item.startTime),
+                    'end': ms(item.endTime),
+                    'text': hm(item.startTime),
+                  },
+            ],
+          },
+      ],
+    };
+  }
+
+  Future<void> syncSchedule({
+    required CityModel city,
+    required List<DayPrayerTimes> days,
+    required String Function(DateTime cityDate) hijriLabel,
   }) async {
+    if (days.isEmpty) return;
     try {
-      // 1. Saom Timer Data
-      final sehriStr = dayPrayers.sehriEnd != null
-          ? BanglaUtils.formatBanglaTime(dayPrayers.sehriEnd!)
-          : BanglaUtils.formatBanglaTime(dayPrayers.fajr);
-      final iftarStr = dayPrayers.iftar != null
-          ? BanglaUtils.formatBanglaTime(dayPrayers.iftar!)
-          : BanglaUtils.formatBanglaTime(dayPrayers.maghrib);
-
-      String saomCountdownStr = 'রোজা পালনের প্রস্তুতি নিন';
-      final now = DateTime.now();
-
-      if (dayPrayers.sehriEnd != null && now.isBefore(dayPrayers.sehriEnd!)) {
-        final diff = dayPrayers.sehriEnd!.difference(now);
-        final hours = diff.inHours;
-        final mins = diff.inMinutes.remainder(60);
-        saomCountdownStr =
-            'সাহরির বাকি: ${hours > 0 ? "${BanglaUtils.toBanglaDigits(hours)} ঘন্টা " : ""}${BanglaUtils.toBanglaDigits(mins)} মিনিট';
-      } else if (dayPrayers.iftar != null && now.isBefore(dayPrayers.iftar!)) {
-        final diff = dayPrayers.iftar!.difference(now);
-        final hours = diff.inHours;
-        final mins = diff.inMinutes.remainder(60);
-        saomCountdownStr =
-            'ইফতারের বাকি: ${hours > 0 ? "${BanglaUtils.toBanglaDigits(hours)} ঘন্টা " : ""}${BanglaUtils.toBanglaDigits(mins)} মিনিট';
+      final payload = buildPayload(city: city, days: days, hijriLabel: hijriLabel);
+      await HomeWidget.saveWidgetData<String>(scheduleKey, json.encode(payload));
+      for (final name in _androidProviders) {
+        await HomeWidget.updateWidget(androidName: name);
       }
-
-      await HomeWidget.saveWidgetData<String>('saom_location', city.name);
-      await HomeWidget.saveWidgetData<String>('saom_sehri', sehriStr);
-      await HomeWidget.saveWidgetData<String>('saom_iftar', iftarStr);
-      await HomeWidget.saveWidgetData<String>('saom_countdown', saomCountdownStr);
-
-      await HomeWidget.updateWidget(
-        androidName: 'SaomTimerWidgetProvider',
-      );
-
-      // 2. Day Summary Data
-      String nextWaqtDisplay = 'ওয়াক্ত লোড হচ্ছে...';
-      String countdownDisplay = 'ওয়াক্ত সমাপ্তির অপেক্ষা';
-
-      if (nextWaqtName != null && nextWaqtTime != null) {
-        nextWaqtDisplay =
-            'পরবর্তী: $nextWaqtName (${BanglaUtils.formatBanglaTime(nextWaqtTime)})';
-      }
-
-      if (remainingDuration != null) {
-        final hours = remainingDuration.inHours;
-        final mins = remainingDuration.inMinutes.remainder(60);
-        countdownDisplay =
-            'বাকি: ${hours > 0 ? "${BanglaUtils.toBanglaDigits(hours)} ঘন্টা " : ""}${BanglaUtils.toBanglaDigits(mins)} মিনিট';
-      }
-
-      await HomeWidget.saveWidgetData<String>('summary_hijri', hijriDateString);
-      await HomeWidget.saveWidgetData<String>('summary_location', city.name);
-      await HomeWidget.saveWidgetData<String>(
-        'summary_current_waqt',
-        currentWaqtName != null
-            ? 'বর্তমান ওয়াক্ত: $currentWaqtName'
-            : 'ওয়াক্ত চলমান',
-      );
-      await HomeWidget.saveWidgetData<String>('summary_next_waqt', nextWaqtDisplay);
-      await HomeWidget.saveWidgetData<String>('summary_countdown', countdownDisplay);
-
-      await HomeWidget.updateWidget(
-        androidName: 'DaySummaryWidgetProvider',
-      );
-
-      // 3. 5 Prayer Times List
-      await HomeWidget.saveWidgetData<String>('list_city', city.name);
-      await HomeWidget.saveWidgetData<String>(
-        'list_fajr',
-        BanglaUtils.toBanglaDigits(DateFormat('hh:mm').format(dayPrayers.fajr)),
-      );
-      await HomeWidget.saveWidgetData<String>(
-        'list_dhuhr',
-        BanglaUtils.toBanglaDigits(DateFormat('hh:mm').format(dayPrayers.dhuhr)),
-      );
-      await HomeWidget.saveWidgetData<String>(
-        'list_asr',
-        BanglaUtils.toBanglaDigits(DateFormat('hh:mm').format(dayPrayers.asr)),
-      );
-      await HomeWidget.saveWidgetData<String>(
-        'list_maghrib',
-        BanglaUtils.toBanglaDigits(DateFormat('hh:mm').format(dayPrayers.maghrib)),
-      );
-      await HomeWidget.saveWidgetData<String>(
-        'list_isha',
-        BanglaUtils.toBanglaDigits(DateFormat('hh:mm').format(dayPrayers.isha)),
-      );
-
-      await HomeWidget.updateWidget(
-        androidName: 'PrayerListWidgetProvider',
-      );
-
-      debugPrint('Successfully synchronized 3 Home Screen Widgets.');
     } catch (e) {
-      debugPrint('Error syncing widgets with native platform: $e');
+      // Widgets are optional (e.g. iOS without an extension, or tests).
+      debugPrint('Widget sync skipped: $e');
     }
   }
 }

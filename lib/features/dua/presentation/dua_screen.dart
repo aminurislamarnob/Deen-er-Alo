@@ -6,6 +6,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../domain/dua_search.dart';
+import '../domain/search_normalizer.dart';
 import 'dua_bookmark_provider.dart';
 
 class DuaScreen extends ConsumerStatefulWidget {
@@ -22,6 +24,7 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
   int _selectedCategoryIndex = 0; // 0 = Bookmarks, 1..N = Categories
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  DuaSearchIndex _searchIndex = DuaSearchIndex(const []);
 
   @override
   void initState() {
@@ -43,8 +46,11 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
     try {
       final jsonStr = await rootBundle.loadString('assets/data/dua.json');
       final data = json.decode(jsonStr) as List<dynamic>;
+      final index = DuaSearchIndex(_flattenDuas(data));
+      if (!mounted) return;
       setState(() {
         _categories = data;
+        _searchIndex = index;
         _isLoading = false;
         // Default to first real category if any
         if (_categories.isNotEmpty) {
@@ -52,6 +58,7 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
         }
       });
     } catch (_) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _errorMessage = 'দুআ লোড করা যায়নি। আবার চেষ্টা করুন।';
@@ -59,23 +66,7 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
     }
   }
 
-  String _cleanContent(String html) {
-    var text = html
-        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
-        .replaceAll(RegExp(r'</p>', caseSensitive: false), '\n\n')
-        .replaceAll(RegExp(r'<[^>]*>'), '')
-        .replaceAll('&#039;', "'")
-        .replaceAll('&quot;', '"')
-        .replaceAll('&amp;', '&')
-        .replaceAll('&lt;', '<')
-        .replaceAll('&gt;', '>')
-        .replaceAll('&nbsp;', ' ')
-        .trim();
-
-    // Collapse 3+ newlines into 2
-    text = text.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-    return text;
-  }
+  String _cleanContent(String html) => SearchNormalizer.htmlToPlainText(html);
 
   void _copyDua(String title, String content) {
     final clean = _cleanContent(content);
@@ -105,9 +96,11 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
     await Share.share('$title\n\n$clean\n\nদ্বীনের আলো (Deener Alo)');
   }
 
-  List<Map<String, dynamic>> _getAllDuas() {
+  List<Map<String, dynamic>> _getAllDuas() => _flattenDuas(_categories);
+
+  static List<Map<String, dynamic>> _flattenDuas(List<dynamic> categories) {
     final List<Map<String, dynamic>> all = [];
-    for (final cat in _categories) {
+    for (final cat in categories) {
       final list = (cat['contentList'] as List<dynamic>?) ?? [];
       for (final item in list) {
         if (item is Map<String, dynamic>) {
@@ -166,9 +159,7 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
                       child: TextField(
                         controller: _searchController,
                         onChanged: (val) {
-                          setState(
-                            () => _searchQuery = val.trim().toLowerCase(),
-                          );
+                          setState(() => _searchQuery = val.trim());
                         },
                         decoration: InputDecoration(
                           hintText: 'দুআ বা যিক্‌র খুঁজুন...',
@@ -183,6 +174,7 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
                           ),
                           suffixIcon: _searchQuery.isNotEmpty
                               ? IconButton(
+                                  tooltip: 'খোঁজা মুছুন',
                                   icon: const Icon(
                                     LucideIcons.x,
                                     color: AppColors.textSubdued,
@@ -295,15 +287,7 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
 
     if (_searchQuery.isNotEmpty) {
       // Global search across all Duas
-      final all = _getAllDuas();
-      itemsToShow = all.where((d) {
-        final title = (d['title'] as String? ?? '').toLowerCase();
-        final sub = (d['subtitle'] as String? ?? '').toLowerCase();
-        final cont = (d['content'] as String? ?? '').toLowerCase();
-        return title.contains(_searchQuery) ||
-            sub.contains(_searchQuery) ||
-            cont.contains(_searchQuery);
-      }).toList();
+      itemsToShow = _searchIndex.search(_searchQuery);
 
       if (itemsToShow.isEmpty) {
         return Center(
@@ -459,71 +443,46 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton.icon(
-                            onPressed: () => _copyDua(title, content),
-                            icon: const Icon(
-                              LucideIcons.copy,
-                              size: 14,
-                              color: AppColors.textSubdued,
+                      SizedBox(
+                        width: double.infinity,
+                        child: Wrap(
+                          alignment: WrapAlignment.end,
+                          spacing: 8,
+                          children: [
+                            _buildDuaAction(
+                              onPressed: () => _copyDua(title, content),
+                              icon: LucideIcons.copy,
+                              label: 'কপি',
+                              tooltip: 'দুআ কপি করুন',
                             ),
-                            label: const Text(
-                              'কপি',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textSubdued,
-                              ),
+                            _buildDuaAction(
+                              onPressed: () => _shareDua(title, content),
+                              icon: LucideIcons.share2,
+                              label: 'শেয়ার',
+                              tooltip: 'দুআ শেয়ার করুন',
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          TextButton.icon(
-                            onPressed: () => _shareDua(title, content),
-                            icon: const Icon(
-                              LucideIcons.share2,
-                              size: 14,
-                              color: AppColors.textSubdued,
-                            ),
-                            label: const Text(
-                              'শেয়ার',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textSubdued,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          TextButton.icon(
-                            onPressed: () {
-                              ref
-                                  .read(duaBookmarkProvider.notifier)
-                                  .toggleBookmark(id);
-                              HapticFeedback.selectionClick();
-                            },
-                            icon: Icon(
-                              isBookmarked
+                            _buildDuaAction(
+                              onPressed: () {
+                                ref
+                                    .read(duaBookmarkProvider.notifier)
+                                    .toggleBookmark(id);
+                                HapticFeedback.selectionClick();
+                              },
+                              icon: isBookmarked
                                   ? LucideIcons.bookmarkCheck
                                   : LucideIcons.bookmark,
-                              size: 15,
+                              iconSize: 15,
+                              label: isBookmarked ? 'সংরক্ষিত' : 'সংরক্ষণ',
+                              tooltip: isBookmarked
+                                  ? 'সংরক্ষণ থেকে সরান'
+                                  : 'দুআ সংরক্ষণ করুন',
                               color: isBookmarked
                                   ? AppColors.goldDark
                                   : AppColors.textSubdued,
+                              selected: isBookmarked,
                             ),
-                            label: Text(
-                              isBookmarked ? 'সংরক্ষিত' : 'সংরক্ষণ',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: isBookmarked
-                                    ? AppColors.goldDark
-                                    : AppColors.textSubdued,
-                              ),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -533,6 +492,45 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
           ),
         );
       },
+    );
+  }
+
+  /// Compact text action with a >=48dp tap target, tooltip and semantics.
+  Widget _buildDuaAction({
+    required VoidCallback onPressed,
+    required IconData icon,
+    required String label,
+    required String tooltip,
+    double iconSize = 14,
+    Color color = AppColors.textSubdued,
+    bool? selected,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      excludeFromSemantics: true,
+      child: Semantics(
+        label: tooltip,
+        selected: selected,
+        button: true,
+        excludeSemantics: true,
+        child: TextButton.icon(
+          onPressed: onPressed,
+          style: TextButton.styleFrom(
+            minimumSize: const Size(48, 48),
+            tapTargetSize: MaterialTapTargetSize.padded,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+          icon: Icon(icon, size: iconSize, color: color),
+          label: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ),
+      ),
     );
   }
 

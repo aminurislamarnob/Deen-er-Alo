@@ -1,17 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:hijri/hijri_calendar.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/utils/bangla_numbers.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../prayer_times/domain/prayer_model.dart';
 import '../data/islamic_events_repository.dart';
+import '../domain/bengali_date_names.dart';
 import '../domain/islamic_event.dart';
 import 'calendar_providers.dart';
 
 class CalendarScreen extends ConsumerWidget {
   const CalendarScreen({super.key});
+
+  static const Color _fridayColor = Color(0xFF0EA371);
+  static const Color _beedColor = Color(0xFF0284C7);
+
+  /// Header subtitle: the Hijri month(s) covered by the Gregorian [month],
+  /// e.g. "জুমাদাল উলা – জুমাদাস সানি ১৪৪৮ হিজরি".
+  static String hijriRangeLabel(DateTime month, int moonOffset) {
+    final first = hijriForDate(
+      DateTime(month.year, month.month, 1),
+      moonOffset,
+    );
+    final last = hijriForDate(
+      DateTime(month.year, month.month + 1, 0),
+      moonOffset,
+    );
+    String name(int m) => BanglaUtils.hijriMonthBengali[m] ?? '';
+    String year(int y) => BanglaUtils.toBanglaDigits(y);
+    if (first.hMonth == last.hMonth && first.hYear == last.hYear) {
+      return '${name(first.hMonth)}, ${year(first.hYear)} হিজরি';
+    }
+    if (first.hYear == last.hYear) {
+      return '${name(first.hMonth)} – ${name(last.hMonth)} ${year(last.hYear)} হিজরি';
+    }
+    return '${name(first.hMonth)} ${year(first.hYear)} – '
+        '${name(last.hMonth)} ${year(last.hYear)} হিজরি';
+  }
+
+  /// Moves the calendar by [delta] months and keeps the selected day inside
+  /// the visible month (today for the current month, otherwise the 1st).
+  void _changeMonth(WidgetRef ref, DateTime activeMonth, int delta) {
+    final target = DateTime(activeMonth.year, activeMonth.month + delta, 1);
+    final today = dateOnly(DateTime.now());
+    ref.read(calendarMonthProvider.notifier).state = target;
+    ref
+        .read(selectedCalendarDateProvider.notifier)
+        .state = (target.year == today.year && target.month == today.month)
+        ? today
+        : target;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,15 +61,12 @@ class CalendarScreen extends ConsumerWidget {
     final eventsRepo = ref.watch(islamicEventsRepositoryProvider);
     final dayPrayersAsync = ref.watch(calendarDayPrayersProvider);
 
-    final hijriActive = getAdjustedHijriDate(activeMonth, moonOffset);
-    final hijriMonthBn =
-        BanglaUtils.hijriMonthBengali[hijriActive.hMonth] ??
-        hijriActive.longMonthName;
+    final hijriYearNow = ref.watch(hijriTodayProvider).hYear;
 
-    final selectedHijri = getAdjustedHijriDate(selectedDate, moonOffset);
-    final selectedEvents = eventsRepo.getEventsForHijriDate(
-      selectedHijri.hMonth,
-      selectedHijri.hDay,
+    final selectedHijri = hijriForDate(selectedDate, moonOffset);
+    final selectedEvents = eventsRepo.getEventsForDate(
+      selectedDate,
+      moonOffset,
     );
 
     return Scaffold(
@@ -83,20 +120,19 @@ class CalendarScreen extends ConsumerWidget {
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(LucideIcons.chevronLeft, color: Colors.white),
-                  onPressed: () {
-                    ref.read(calendarMonthProvider.notifier).state = DateTime(
-                      activeMonth.year,
-                      activeMonth.month - 1,
-                      1,
-                    );
-                  },
+                  icon: const Icon(
+                    LucideIcons.chevronLeft,
+                    color: Colors.white,
+                  ),
+                  tooltip: 'আগের মাস',
+                  onPressed: () => _changeMonth(ref, activeMonth, -1),
                 ),
                 Expanded(
                   child: Column(
                     children: [
                       Text(
-                        DateFormat('MMMM yyyy').format(activeMonth),
+                        BengaliDateNames.monthYear(activeMonth),
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -105,7 +141,8 @@ class CalendarScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '$hijriMonthBn, ${BanglaUtils.toBanglaDigits(hijriActive.hYear)} হিজরি',
+                        hijriRangeLabel(activeMonth, moonOffset),
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: AppColors.gold,
                           fontSize: 13,
@@ -116,14 +153,12 @@ class CalendarScreen extends ConsumerWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(LucideIcons.chevronRight, color: Colors.white),
-                  onPressed: () {
-                    ref.read(calendarMonthProvider.notifier).state = DateTime(
-                      activeMonth.year,
-                      activeMonth.month + 1,
-                      1,
-                    );
-                  },
+                  icon: const Icon(
+                    LucideIcons.chevronRight,
+                    color: Colors.white,
+                  ),
+                  tooltip: 'পরের মাস',
+                  onPressed: () => _changeMonth(ref, activeMonth, 1),
                 ),
               ],
             ),
@@ -144,7 +179,11 @@ class CalendarScreen extends ConsumerWidget {
                 // Weekday headers
                 _buildWeekdayHeader(),
                 const SizedBox(height: 8),
-                const Divider(height: 1, thickness: 1, color: AppColors.cardBorder),
+                const Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: AppColors.cardBorder,
+                ),
                 const SizedBox(height: 8),
                 // Days grid
                 _buildDaysGrid(
@@ -155,6 +194,14 @@ class CalendarScreen extends ConsumerWidget {
                   moonOffset,
                   eventsRepo,
                 ),
+                const SizedBox(height: 10),
+                const Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: AppColors.cardBorder,
+                ),
+                const SizedBox(height: 10),
+                _buildLegend(),
               ],
             ),
           ),
@@ -173,7 +220,7 @@ class CalendarScreen extends ConsumerWidget {
           const SizedBox(height: 20),
 
           // Major Islamic Events of the Year
-          _buildMajorEventsSection(eventsRepo, moonOffset),
+          _buildMajorEventsSection(eventsRepo, moonOffset, hijriYearNow),
         ],
       ),
     );
@@ -191,7 +238,7 @@ class CalendarScreen extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isFriday ? FontWeight.bold : FontWeight.w600,
-                color: isFriday ? const Color(0xFF0EA371) : AppColors.textSubdued,
+                color: isFriday ? _fridayColor : AppColors.textSubdued,
               ),
             ),
           ),
@@ -221,20 +268,28 @@ class CalendarScreen extends ConsumerWidget {
 
     for (int day = 1; day <= totalDaysInMonth; day++) {
       final cellDate = DateTime(month.year, month.month, day);
-      final isSelected = cellDate.year == selectedDate.year &&
+      final isSelected =
+          cellDate.year == selectedDate.year &&
           cellDate.month == selectedDate.month &&
           cellDate.day == selectedDate.day;
-      final isToday = cellDate.year == now.year &&
+      final isToday =
+          cellDate.year == now.year &&
           cellDate.month == now.month &&
           cellDate.day == now.day;
       final isFriday = cellDate.weekday == DateTime.friday;
 
-      final cellHijri = getAdjustedHijriDate(cellDate, moonOffset);
-      final events = eventsRepo.getEventsForHijriDate(
-        cellHijri.hMonth,
-        cellHijri.hDay,
-      );
-      final hasEvent = events.isNotEmpty;
+      final events = eventsRepo.getEventsForDate(cellDate, moonOffset);
+      final cellHijri = hijriForDate(cellDate, moonOffset);
+      final hasMajor = events.any((e) => e.isMajor);
+      final hasBeed = events.any((e) => e.isAyyamBeed);
+      final hasOther = events.any((e) => !e.isMajor && !e.isAyyamBeed);
+
+      final markerColor = isSelected ? Colors.white : AppColors.goldDark;
+      final markers = <Widget>[
+        if (hasMajor) _buildMarkerDot(markerColor),
+        if (hasOther) _buildMarkerDot(markerColor, hollow: true),
+        if (hasBeed) _buildMarkerDot(isSelected ? Colors.white : _beedColor),
+      ];
 
       cells.add(
         InkWell(
@@ -244,58 +299,60 @@ class CalendarScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               color: isSelected
                   ? AppColors.primary
                   : isToday
-                      ? AppColors.primaryLight.withValues(alpha: 0.12)
-                      : Colors.transparent,
+                  ? AppColors.primaryLight.withValues(alpha: 0.12)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isSelected
                     ? AppColors.primary
                     : isToday
-                        ? AppColors.primary.withValues(alpha: 0.4)
-                        : Colors.transparent,
+                    ? AppColors.primary.withValues(alpha: 0.4)
+                    : Colors.transparent,
               ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '$day',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: isSelected || isToday
-                        ? FontWeight.bold
-                        : FontWeight.w600,
-                    color: isSelected
-                        ? Colors.white
-                        : isFriday
-                            ? const Color(0xFF0EA371)
-                            : AppColors.textDark,
-                  ),
-                ),
-                Text(
-                  BanglaUtils.toBanglaDigits(cellHijri.hDay),
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isSelected
-                        ? AppColors.gold
-                        : AppColors.textSubdued,
-                  ),
-                ),
-                if (hasEvent)
-                  Container(
-                    margin: const EdgeInsets.only(top: 2),
-                    width: 4,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isSelected ? Colors.white : AppColors.goldDark,
-                      shape: BoxShape.circle,
+            // Scale down instead of overflowing at large text sizes.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    BanglaUtils.toBanglaDigits(day),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: isSelected || isToday || isFriday
+                          ? FontWeight.bold
+                          : FontWeight.w600,
+                      color: isSelected
+                          ? Colors.white
+                          : isFriday
+                          ? _fridayColor
+                          : AppColors.textDark,
                     ),
                   ),
-              ],
+                  Text(
+                    BanglaUtils.toBanglaDigits(cellHijri.hDay),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isSelected
+                          ? AppColors.gold
+                          : AppColors.textSubdued,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 7,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: markers,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -312,10 +369,61 @@ class CalendarScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildMarkerDot(Color color, {bool hollow = false}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 1),
+      width: 5,
+      height: 5,
+      decoration: BoxDecoration(
+        color: hollow ? Colors.transparent : color,
+        shape: BoxShape.circle,
+        border: hollow ? Border.all(color: color, width: 1.2) : null,
+      ),
+    );
+  }
+
+  Widget _buildLegend() {
+    Widget item(Widget marker, String label) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        marker,
+        const SizedBox(width: 5),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: AppColors.textSubdued),
+        ),
+      ],
+    );
+    return Wrap(
+      spacing: 14,
+      runSpacing: 6,
+      alignment: WrapAlignment.center,
+      children: [
+        item(_buildMarkerDot(AppColors.goldDark), 'প্রধান দিবস'),
+        item(
+          _buildMarkerDot(AppColors.goldDark, hollow: true),
+          'অন্যান্য দিবস',
+        ),
+        item(_buildMarkerDot(_beedColor), 'আইয়ামে বিজ'),
+        item(
+          Text(
+            BanglaUtils.toBanglaDigits(7),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: _fridayColor,
+            ),
+          ),
+          'শুক্রবার (জুমা)',
+        ),
+      ],
+    );
+  }
+
   Widget _buildDayInspectorCard(
     BuildContext context,
     DateTime date,
-    dynamic hijriDate,
+    HijriCalendar hijriDate,
     List<IslamicEvent> events,
     AsyncValue<DayPrayerTimes?> dayPrayersAsync,
   ) {
@@ -341,8 +449,11 @@ class CalendarScreen extends ConsumerWidget {
                   color: AppColors.primaryLight.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(LucideIcons.calendarCheck,
-                    color: AppColors.primary, size: 20),
+                child: const Icon(
+                  LucideIcons.calendarCheck,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -350,7 +461,7 @@ class CalendarScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      DateFormat('EEEE, d MMMM yyyy').format(date),
+                      BengaliDateNames.fullDate(date),
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -380,22 +491,35 @@ class CalendarScreen extends ConsumerWidget {
                 margin: const EdgeInsets.only(bottom: 6),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
+                  color: ev.isAyyamBeed
+                      ? const Color(0xFFE0F2FE)
+                      : const Color(0xFFFEF3C7),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFFDE68A)),
+                  border: Border.all(
+                    color: ev.isAyyamBeed
+                        ? const Color(0xFFBAE6FD)
+                        : const Color(0xFFFDE68A),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.star,
-                        color: Color(0xFFD97706), size: 16),
+                    Icon(
+                      ev.isAyyamBeed ? LucideIcons.moon : LucideIcons.star,
+                      color: ev.isAyyamBeed
+                          ? _beedColor
+                          : const Color(0xFFD97706),
+                      size: 16,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         ev.titleBn,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF92400E),
+                          color: ev.isAyyamBeed
+                              ? const Color(0xFF075985)
+                              : const Color(0xFF92400E),
                         ),
                       ),
                     ),
@@ -425,12 +549,30 @@ class CalendarScreen extends ConsumerWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _buildPrayerTimeChip('ফজর', BanglaUtils.formatBanglaTime(prayers.fajr)),
-                  _buildPrayerTimeChip('সূর্যোদয়', BanglaUtils.formatBanglaTime(prayers.sunrise)),
-                  _buildPrayerTimeChip('জোহর', BanglaUtils.formatBanglaTime(prayers.dhuhr)),
-                  _buildPrayerTimeChip('আসর', BanglaUtils.formatBanglaTime(prayers.asr)),
-                  _buildPrayerTimeChip('মাগরিব', BanglaUtils.formatBanglaTime(prayers.maghrib)),
-                  _buildPrayerTimeChip('ইশা', BanglaUtils.formatBanglaTime(prayers.isha)),
+                  _buildPrayerTimeChip(
+                    'ফজর',
+                    BanglaUtils.formatBanglaTime(prayers.fajr),
+                  ),
+                  _buildPrayerTimeChip(
+                    'সূর্যোদয়',
+                    BanglaUtils.formatBanglaTime(prayers.sunrise),
+                  ),
+                  _buildPrayerTimeChip(
+                    'জোহর',
+                    BanglaUtils.formatBanglaTime(prayers.dhuhr),
+                  ),
+                  _buildPrayerTimeChip(
+                    'আসর',
+                    BanglaUtils.formatBanglaTime(prayers.asr),
+                  ),
+                  _buildPrayerTimeChip(
+                    'মাগরিব',
+                    BanglaUtils.formatBanglaTime(prayers.maghrib),
+                  ),
+                  _buildPrayerTimeChip(
+                    'ইশা',
+                    BanglaUtils.formatBanglaTime(prayers.isha),
+                  ),
                 ],
               );
             },
@@ -440,7 +582,10 @@ class CalendarScreen extends ConsumerWidget {
                 child: CircularProgressIndicator(color: AppColors.primary),
               ),
             ),
-            error: (e, _) => Text('Error: $e'),
+            error: (_, __) => const Text(
+              'দুঃখিত, এই দিনের নামাজের সময়সূচি হিসাব করা যায়নি।',
+              style: TextStyle(fontSize: 12, color: AppColors.textSubdued),
+            ),
           ),
         ],
       ),
@@ -468,7 +613,18 @@ class CalendarScreen extends ConsumerWidget {
   Widget _buildMajorEventsSection(
     IslamicEventsRepository eventsRepo,
     int moonOffset,
+    int hijriYear,
   ) {
+    String gregorianLabel(IslamicEvent e) {
+      try {
+        return BengaliDateNames.dayMonthYear(
+          gregorianForHijri(hijriYear, e.hijriMonth, e.hijriDay, moonOffset),
+        );
+      } catch (_) {
+        return '';
+      }
+    }
+
     final events = eventsRepo.getAllEvents().where((e) => e.isMajor).toList();
 
     return Column(
@@ -486,18 +642,21 @@ class CalendarScreen extends ConsumerWidget {
             ),
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
+        Material(
+          color: Colors.white,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.cardBorder),
+            side: const BorderSide(color: AppColors.cardBorder),
           ),
           child: Column(
             children: [
               for (int i = 0; i < events.length; i++) ...[
                 ListTile(
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -526,25 +685,44 @@ class CalendarScreen extends ConsumerWidget {
                     ),
                   ),
                   trailing: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFEF3C7),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text(
-                      '${BanglaUtils.toBanglaDigits(events[i].hijriDay)} ${BanglaUtils.hijriMonthBengali[events[i].hijriMonth]}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF92400E),
-                      ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${BanglaUtils.toBanglaDigits(events[i].hijriDay)} ${BanglaUtils.hijriMonthBengali[events[i].hijriMonth]}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF92400E),
+                          ),
+                        ),
+                        if (gregorianLabel(events[i]).isNotEmpty)
+                          Text(
+                            gregorianLabel(events[i]),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFFB45309),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
                 if (i < events.length - 1)
                   const Divider(
-                      height: 1, thickness: 1, color: AppColors.cardBorder),
+                    height: 1,
+                    thickness: 1,
+                    color: AppColors.cardBorder,
+                  ),
               ],
             ],
           ),
@@ -553,7 +731,11 @@ class CalendarScreen extends ConsumerWidget {
     );
   }
 
-  void _showMoonOffsetSheet(BuildContext context, WidgetRef ref, int currentOffset) {
+  void _showMoonOffsetSheet(
+    BuildContext context,
+    WidgetRef ref,
+    int currentOffset,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -611,7 +793,7 @@ class CalendarScreen extends ConsumerWidget {
                     title: Text(
                       offset == 0
                           ? 'স্বাভাবিক গণনা (০ দিন)'
-                          : '${offset > 0 ? "+" : ""}$offset দিন ${offset > 0 ? "যোগ" : "বিয়োগ"}',
+                          : '${offset > 0 ? "+" : "−"}${BanglaUtils.toBanglaDigits(offset.abs())} দিন ${offset > 0 ? "যোগ" : "বিয়োগ"}',
                       style: TextStyle(
                         fontWeight: offset == currentOffset
                             ? FontWeight.bold

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
+import '../../../core/services/location_service.dart';
 import '../domain/city_model.dart';
 import 'prayer_providers.dart';
 
@@ -26,6 +28,8 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
   List<CityModel> _filteredCities = [];
   bool _isLoading = false;
   bool _isDetectingLocation = false;
+  Timer? _searchDebounce;
+  int _searchSeq = 0;
 
   @override
   void initState() {
@@ -45,18 +49,59 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
     }
   }
 
-  Future<void> _onSearch(String query) async {
-    final repo = ref.read(cityRepositoryProvider);
-    final results = await repo.searchCities(query);
-    if (mounted) {
-      setState(() {
-        _filteredCities = results;
-      });
+  /// Debounced search; results of superseded queries are discarded.
+  void _onSearch(String query) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 250), () async {
+      final seq = ++_searchSeq;
+      final repo = ref.read(cityRepositoryProvider);
+      final results = await repo.searchCities(query);
+      if (mounted && seq == _searchSeq) {
+        setState(() => _filteredCities = results);
+      }
+    });
+  }
+
+  ({String message, SnackBarAction? action}) _locationFailureFeedback(
+    LocationFailure? failure,
+  ) {
+    final service = ref.read(locationServiceProvider);
+    switch (failure) {
+      case LocationFailure.serviceDisabled:
+        return (
+          message: 'ফোনের লোকেশন (GPS) বন্ধ আছে। আগের শহর রাখা হয়েছে।',
+          action: SnackBarAction(
+            label: 'চালু করুন',
+            textColor: Colors.white,
+            onPressed: service.openLocationSettings,
+          ),
+        );
+      case LocationFailure.deniedForever:
+        return (
+          message: 'লোকেশন অনুমতি স্থায়ীভাবে বন্ধ। সেটিংস থেকে অনুমতি দিন।',
+          action: SnackBarAction(
+            label: 'সেটিংস',
+            textColor: Colors.white,
+            onPressed: service.openAppSettings,
+          ),
+        );
+      case LocationFailure.denied:
+        return (
+          message: 'লোকেশন অনুমতি দেওয়া হয়নি। আগের শহর রাখা হয়েছে।',
+          action: null,
+        );
+      case LocationFailure.unavailable:
+      case null:
+        return (
+          message: 'লোকেশন পাওয়া যায়নি। আগের শহর রাখা হয়েছে।',
+          action: null,
+        );
     }
   }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -125,14 +170,21 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
                           .detectLocation();
                       if (mounted) {
                         setState(() => _isDetectingLocation = false);
+                        final failure = success
+                            ? null
+                            : _locationFailureFeedback(
+                                ref.read(locationServiceProvider).lastFailure,
+                              );
+                        final city =
+                            ref.read(selectedCityProvider).valueOrNull;
                         navigator.pop();
                         messenger.showSnackBar(
                           SnackBar(
                             content: Text(
-                              success
-                                  ? 'Location updated successfully!'
-                                  : 'Could not detect location. Using default.',
+                              failure?.message ??
+                                  'লোকেশন হালনাগাদ হয়েছে: ${city?.name ?? ''}',
                             ),
+                            action: failure?.action,
                             backgroundColor: success
                                 ? AppColors.primary
                                 : AppColors.dangerRed,

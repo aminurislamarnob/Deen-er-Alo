@@ -11,16 +11,19 @@ final allNamesProvider = FutureProvider<List<AllahName>>((ref) async {
   return repo.loadNames();
 });
 
-final namesSearchQueryProvider = StateProvider<String>((ref) => '');
+/// autoDispose so the query resets together with the screen's
+/// TextEditingController when the user leaves /names.
+final namesSearchQueryProvider = StateProvider.autoDispose<String>((ref) => '');
 
-final filteredNamesProvider = Provider<AsyncValue<List<AllahName>>>((ref) {
-  final allNamesAsync = ref.watch(allNamesProvider);
-  final query = ref.watch(namesSearchQueryProvider);
-  final repo = ref.watch(namesRepositoryProvider);
+final filteredNamesProvider = Provider.autoDispose<AsyncValue<List<AllahName>>>(
+  (ref) {
+    final allNamesAsync = ref.watch(allNamesProvider);
+    final query = ref.watch(namesSearchQueryProvider);
+    final repo = ref.watch(namesRepositoryProvider);
 
-  return allNamesAsync.whenData((names) {
-    if (query.trim().isEmpty) return names;
-    return repo.searchNames(names, query);
-  });
-});
-
+    return allNamesAsync.whenData((names) {
+      if (query.trim().isEmpty) return names;
+      return repo.searchNames(names, query);
+    });
+  },
+);
