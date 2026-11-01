@@ -284,6 +284,7 @@ class HomeScreen extends ConsumerWidget {
   Widget _buildSectionTitle(String title, {VoidCallback? onSeeAll}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           title,
@@ -295,14 +296,40 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
         if (onSeeAll != null)
-          InkWell(
-            onTap: onSeeAll,
-            child: const Text(
-              'সব দেখুন >',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onSeeAll,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.16),
+                    width: 0.8,
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'সব দেখুন',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    SizedBox(width: 3),
+                    Icon(
+                      LucideIcons.chevronRight,
+                      size: 13,
+                      color: AppColors.primary,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
