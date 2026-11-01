@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../app/theme/app_colors.dart';
 
 class ArcTimerWidget extends StatelessWidget {
@@ -124,9 +125,9 @@ class ArcTimerWidget extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.wb_twilight_rounded,
+                      LucideIcons.sunrise,
                       color: AppColors.gold,
-                      size: 20,
+                      size: 18,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -186,9 +187,9 @@ class ArcTimerWidget extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.wb_sunny_rounded,
+                      LucideIcons.sunset,
                       color: AppColors.gold,
-                      size: 20,
+                      size: 18,
                     ),
                   ),
                 ],

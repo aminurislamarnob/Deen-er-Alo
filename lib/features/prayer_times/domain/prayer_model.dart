@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:deener_alo/core/constants/app_icons.dart';
 
 enum PrayerType {
   fajr,
@@ -47,17 +48,17 @@ extension PrayerTypeX on PrayerType {
   IconData get iconData {
     switch (this) {
       case PrayerType.fajr:
-        return Icons.wb_twilight_rounded;
+        return AppIcons.fajr;
       case PrayerType.sunrise:
-        return Icons.wb_sunny_outlined;
+        return AppIcons.sunrise;
       case PrayerType.dhuhr:
-        return Icons.wb_sunny_rounded;
+        return AppIcons.dhuhr;
       case PrayerType.asr:
-        return Icons.wb_cloudy_rounded;
+        return AppIcons.asr;
       case PrayerType.maghrib:
-        return Icons.nights_stay_outlined;
+        return AppIcons.maghrib;
       case PrayerType.isha:
-        return Icons.bedtime_rounded;
+        return AppIcons.isha;
     }
   }
 

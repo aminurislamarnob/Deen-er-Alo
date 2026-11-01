@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../prayer_times/domain/prayer_model.dart';
 import '../../prayer_times/presentation/prayer_providers.dart';
@@ -30,7 +31,7 @@ class RamadanChecklistScreen extends ConsumerWidget {
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                      icon: const Icon(LucideIcons.arrowLeft,
                           color: Colors.white, size: 20),
                       onPressed: () => context.pop(),
                     ),
@@ -135,8 +136,8 @@ class RamadanChecklistScreen extends ConsumerWidget {
                                 IconButton(
                                   icon: Icon(
                                     isAlarm
-                                        ? Icons.volume_up_rounded
-                                        : Icons.volume_off_rounded,
+                                        ? LucideIcons.volume2
+                                        : LucideIcons.volumeOff,
                                     color: isAlarm
                                         ? AppColors.gold
                                         : Colors.white38,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../domain/city_model.dart';
 import 'prayer_providers.dart';
@@ -100,7 +101,7 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: const Icon(LucideIcons.x, size: 20),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -146,7 +147,7 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
                 child: const Row(
                   children: [
                     Icon(
-                      Icons.my_location_rounded,
+                      LucideIcons.locateFixed,
                       color: AppColors.primary,
                       size: 20,
                     ),
@@ -162,7 +163,7 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
                       ),
                     ),
                     Icon(
-                      Icons.chevron_right_rounded,
+                      LucideIcons.chevronRight,
                       color: AppColors.primary,
                       size: 20,
                     ),
@@ -181,7 +182,7 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
               decoration: InputDecoration(
                 hintText: 'Search city or district (e.g. Dhaka, Chittagong)...',
                 hintStyle: const TextStyle(fontSize: 13, color: AppColors.textSubdued),
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                prefixIcon: const Icon(LucideIcons.search, size: 18),
                 filled: true,
                 fillColor: AppColors.bgLight,
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
@@ -237,8 +238,9 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
                             ),
                             trailing: isSelected
                                 ? const Icon(
-                                    Icons.check_circle_rounded,
+                                    LucideIcons.circleCheck,
                                     color: AppColors.activeGreen,
+                                    size: 20,
                                   )
                                 : null,
                             onTap: () {

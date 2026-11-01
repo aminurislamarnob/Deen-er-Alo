@@ -34,6 +34,8 @@ dependencies:
   # UI & Design
   google_fonts: ^6.2.1
   cached_network_image: ^3.4.1
+  lucide_icons_flutter: ^4.0.1
+  flutter_svg: ^2.3.2
 
 dev_dependencies:
   flutter_test:
@@ -46,3 +48,4 @@ flutter:
   assets:
     - assets/images/
     - assets/data/
+    - assets/icons/

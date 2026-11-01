@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 
 class QuranScreen extends StatelessWidget {
@@ -61,9 +62,9 @@ class QuranScreen extends StatelessWidget {
                     ),
                   ),
                   Icon(
-                    Icons.menu_book_rounded,
+                    LucideIcons.bookOpen,
                     color: AppColors.gold,
-                    size: 40,
+                    size: 36,
                   ),
                 ],
               ),

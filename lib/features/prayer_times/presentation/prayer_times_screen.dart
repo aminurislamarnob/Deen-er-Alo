@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import 'city_picker_sheet.dart';
 import 'prayer_providers.dart';
@@ -108,9 +109,9 @@ class PrayerTimesScreen extends ConsumerWidget {
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
-                                      Icons.arrow_back_rounded,
+                                      LucideIcons.arrowLeft,
                                       color: AppColors.primaryDark,
-                                      size: 20,
+                                      size: 18,
                                     ),
                                   ),
                                 ),
@@ -127,9 +128,9 @@ class PrayerTimesScreen extends ConsumerWidget {
                                 // City & Location button
                                 IconButton(
                                   icon: const Icon(
-                                    Icons.tune_rounded,
+                                    LucideIcons.slidersHorizontal,
                                     color: Colors.white,
-                                    size: 22,
+                                    size: 20,
                                   ),
                                   onPressed: () =>
                                       CityPickerSheet.show(context),
@@ -154,8 +155,8 @@ class PrayerTimesScreen extends ConsumerWidget {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.chevron_left_rounded,
-                                        color: Colors.white, size: 22),
+                                    icon: const Icon(LucideIcons.chevronLeft,
+                                        color: Colors.white, size: 20),
                                     onPressed: () {
                                       ref
                                           .read(selectedDateProvider.notifier)
@@ -180,8 +181,8 @@ class PrayerTimesScreen extends ConsumerWidget {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.event_rounded,
-                                            color: AppColors.gold, size: 16),
+                                        const Icon(LucideIcons.calendar,
+                                            color: AppColors.gold, size: 14),
                                         const SizedBox(width: 6),
                                         Text(
                                           isToday
@@ -198,8 +199,8 @@ class PrayerTimesScreen extends ConsumerWidget {
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.chevron_right_rounded,
-                                        color: Colors.white, size: 22),
+                                    icon: const Icon(LucideIcons.chevronRight,
+                                        color: Colors.white, size: 20),
                                     onPressed: () {
                                       ref
                                           .read(selectedDateProvider.notifier)
@@ -277,7 +278,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                                 ),
                                 child: const Row(
                                   children: [
-                                    Icon(Icons.warning_amber_rounded,
+                                    Icon(LucideIcons.triangleAlert,
                                         color: Color(0xFFEF4444), size: 18),
                                     SizedBox(width: 8),
                                     Expanded(
@@ -290,7 +291,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                                         ),
                                       ),
                                     ),
-                                    Icon(Icons.chevron_right_rounded,
+                                    Icon(LucideIcons.chevronRight,
                                         color: AppColors.textSubdued, size: 18),
                                   ],
                                 ),
@@ -315,7 +316,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                                 children: [
                                   const Row(
                                     children: [
-                                      Icon(Icons.wb_sunny_outlined,
+                                      Icon(LucideIcons.sunrise,
                                           color: Color(0xFFD97706), size: 18),
                                       SizedBox(width: 8),
                                       Text(

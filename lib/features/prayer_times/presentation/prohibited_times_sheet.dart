@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import 'prayer_providers.dart';
 
@@ -51,8 +52,8 @@ class ProhibitedTimesSheet extends ConsumerWidget {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded,
-                      color: Color(0xFFEF4444), size: 22),
+                  Icon(LucideIcons.triangleAlert,
+                      color: Color(0xFFEF4444), size: 20),
                   SizedBox(width: 8),
                   Text(
                     'নামাজের নিষিদ্ধ সময় (মাকরূহ ওয়াক্ত)',
@@ -65,7 +66,7 @@ class ProhibitedTimesSheet extends ConsumerWidget {
                 ],
               ),
               IconButton(
-                icon: const Icon(Icons.close_rounded),
+                icon: const Icon(LucideIcons.x, size: 20),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -92,8 +93,8 @@ class ProhibitedTimesSheet extends ConsumerWidget {
               children: [
                 Icon(
                   currentProhibited != null
-                      ? Icons.cancel_rounded
-                      : Icons.check_circle_rounded,
+                      ? LucideIcons.ban
+                      : LucideIcons.circleCheck,
                   color: currentProhibited != null
                       ? const Color(0xFFDC2626)
                       : AppColors.activeGreen,
@@ -190,3 +191,4 @@ class ProhibitedTimesSheet extends ConsumerWidget {
     );
   }
 }
+

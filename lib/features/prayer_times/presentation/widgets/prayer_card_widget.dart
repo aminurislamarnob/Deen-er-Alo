@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../domain/prayer_model.dart';
 
@@ -134,12 +135,12 @@ class PrayerCardWidget extends StatelessWidget {
                       padding: const EdgeInsets.all(8),
                       child: Icon(
                         isAlarmActive
-                            ? Icons.volume_up_rounded
-                            : Icons.volume_off_rounded,
+                            ? LucideIcons.volume2
+                            : LucideIcons.volumeOff,
                         color: isAlarmActive
                             ? AppColors.activeGreen
                             : AppColors.inactiveMuted,
-                        size: 22,
+                        size: 20,
                       ),
                     ),
                   ),

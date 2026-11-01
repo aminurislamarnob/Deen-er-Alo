@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../prayer_times/presentation/city_picker_sheet.dart';
 import '../../prayer_times/presentation/prayer_providers.dart';
@@ -82,22 +83,22 @@ class SettingsScreen extends ConsumerWidget {
 
             _buildSectionHeader('PRAYER & LOCATION (নামাজ ও অবস্থান)'),
             _buildSettingTile(
-              icon: Icons.location_on_rounded,
+              icon: LucideIcons.mapPin,
               title: 'Current Location',
               subtitle: locationLabel,
               onTap: () => CityPickerSheet.show(context),
             ),
             _buildSettingTile(
-              icon: Icons.account_balance_rounded,
+              icon: LucideIcons.landmark,
               title: 'Calculation Method',
               subtitle: 'University of Islamic Sciences, Karachi (Hanafi)',
               onTap: () {},
             ),
             _buildSettingTile(
-              icon: Icons.verified_rounded,
+              icon: LucideIcons.badgeCheck,
               title: 'Islamic Foundation Timetable',
               subtitle: 'Official BD Permanent Schedule (Active)',
-              trailing: const Icon(Icons.check_circle_rounded, color: AppColors.activeGreen),
+              trailing: const Icon(LucideIcons.circleCheck, color: AppColors.activeGreen, size: 20),
               onTap: () {},
             ),
 
@@ -105,19 +106,19 @@ class SettingsScreen extends ConsumerWidget {
 
             _buildSectionHeader('ISLAMIC TOOLS (ইসলামিক টুলস)'),
             _buildSettingTile(
-              icon: Icons.explore_rounded,
+              icon: LucideIcons.compass,
               title: 'Qibla Compass (ক্বিবলা কম্পাস)',
               subtitle: 'Find exact direction to Kaaba',
               onTap: () {},
             ),
             _buildSettingTile(
-              icon: Icons.touch_app_rounded,
+              icon: LucideIcons.fingerprint,
               title: 'Digital Tasbeeh (ডিজিটাল তাসবীহ)',
               subtitle: 'Track your daily dhikr',
               onTap: () {},
             ),
             _buildSettingTile(
-              icon: Icons.stars_rounded,
+              icon: LucideIcons.sparkles,
               title: '99 Names of Allah (আল্লাহর ৯৯টি নাম)',
               subtitle: 'With Bengali meaning & references',
               onTap: () {},
@@ -127,19 +128,19 @@ class SettingsScreen extends ConsumerWidget {
 
             _buildSectionHeader('GENERAL (সাধারণ)'),
             _buildSettingTile(
-              icon: Icons.language_rounded,
+              icon: LucideIcons.languages,
               title: 'Language (ভাষা)',
               subtitle: 'English / বাংলা (Bengali)',
               onTap: () {},
             ),
             _buildSettingTile(
-              icon: Icons.notifications_active_rounded,
+              icon: LucideIcons.bellRing,
               title: 'Adhan & Prayer Alarms',
               subtitle: 'Customize Azan sounds & vibration',
               onTap: () {},
             ),
             _buildSettingTile(
-              icon: Icons.info_outline_rounded,
+              icon: LucideIcons.info,
               title: 'About Deener Alo',
               subtitle: 'Privacy Policy & Terms',
               onTap: () {},
@@ -206,7 +207,7 @@ class SettingsScreen extends ConsumerWidget {
         ),
         trailing: trailing ??
             const Icon(
-              Icons.chevron_right_rounded,
+              LucideIcons.chevronRight,
               color: AppColors.textSubdued,
               size: 20,
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/app_colors.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
@@ -31,11 +32,11 @@ class ScaffoldWithNavBar extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.home_rounded, Icons.home_outlined, 'Home'),
-                _buildNavItem(1, Icons.access_time_filled_rounded, Icons.access_time_rounded, 'Prayers'),
-                _buildNavItem(2, Icons.menu_book_rounded, Icons.menu_book_outlined, 'Quran'),
-                _buildNavItem(3, Icons.auto_stories_rounded, Icons.auto_stories_outlined, 'Dua'),
-                _buildNavItem(4, Icons.widgets_rounded, Icons.widgets_outlined, 'More'),
+                _buildNavItem(0, LucideIcons.home, LucideIcons.home, 'Home'),
+                _buildNavItem(1, LucideIcons.clock, LucideIcons.clock, 'Prayers'),
+                _buildNavItem(2, LucideIcons.bookOpen, LucideIcons.bookOpen, 'Quran'),
+                _buildNavItem(3, LucideIcons.sparkles, LucideIcons.sparkles, 'Dua'),
+                _buildNavItem(4, LucideIcons.layoutGrid, LucideIcons.layoutGrid, 'More'),
               ],
             ),
           ),

@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
+import '../../../core/constants/app_icons.dart';
 import '../../../core/utils/bangla_numbers.dart';
 import '../../prayer_times/domain/prayer_model.dart';
 import '../../prayer_times/presentation/city_picker_sheet.dart';
@@ -125,7 +127,7 @@ class HomeScreen extends ConsumerWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const Icon(
-                                    Icons.location_on_rounded,
+                                    LucideIcons.mapPin,
                                     color: AppColors.gold,
                                     size: 14,
                                   ),
@@ -138,11 +140,11 @@ class HomeScreen extends ConsumerWidget {
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  const SizedBox(width: 2),
+                                  const SizedBox(width: 4),
                                   const Icon(
-                                    Icons.keyboard_arrow_down_rounded,
+                                    LucideIcons.chevronDown,
                                     color: Colors.white70,
-                                    size: 16,
+                                    size: 14,
                                   ),
                                 ],
                               ),
@@ -167,7 +169,7 @@ class HomeScreen extends ConsumerWidget {
                         child: Row(
                           children: [
                             const Icon(
-                              Icons.calendar_month_rounded,
+                              LucideIcons.calendar,
                               color: AppColors.gold,
                               size: 16,
                             ),
@@ -559,8 +561,8 @@ class HomeScreen extends ConsumerWidget {
                           },
                           child: Icon(
                             isAlarm
-                                ? Icons.volume_up_rounded
-                                : Icons.volume_off_rounded,
+                                ? LucideIcons.volume2
+                                : LucideIcons.volumeOff,
                             color: isAlarm
                                 ? AppColors.activeGreen
                                 : AppColors.inactiveMuted,
@@ -605,12 +607,12 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildToolsGrid(BuildContext context) {
     final tools = [
-      {'title': 'ক্বিবলা কম্পাস', 'sub': 'Qibla Direction', 'icon': Icons.explore_rounded, 'color': const Color(0xFF10B981), 'route': '/settings'},
-      {'title': 'ডিজিটাল তাসবীহ', 'sub': 'Digital Tasbeeh', 'icon': Icons.touch_app_rounded, 'color': const Color(0xFF3B82F6), 'route': '/settings'},
-      {'title': 'আল-কুরআন', 'sub': 'Holy Quran', 'icon': Icons.menu_book_rounded, 'color': const Color(0xFF8B5CF6), 'route': '/quran'},
-      {'title': 'দুআ ও যিক্‌র', 'sub': 'Duas & Adhkar', 'icon': Icons.auto_stories_rounded, 'color': const Color(0xFFF59E0B), 'route': '/dua'},
-      {'title': 'আল্লাহর ৯৯ নাম', 'sub': '99 Names', 'icon': Icons.stars_rounded, 'color': const Color(0xFFEC4899), 'route': '/settings'},
-      {'title': 'নামাজ নিষিদ্ধ সময়', 'sub': 'Prohibited Times', 'icon': Icons.warning_amber_rounded, 'color': const Color(0xFFEF4444), 'route': 'prohibited'},
+      {'title': 'ক্বিবলা কম্পাস', 'sub': 'Qibla Direction', 'icon': LucideIcons.compass, 'color': const Color(0xFF10B981), 'route': '/settings'},
+      {'title': 'ডিজিটাল তাসবীহ', 'sub': 'Digital Tasbeeh', 'svg': AppIcons.tasbeehSvg, 'color': const Color(0xFF3B82F6), 'route': '/settings'},
+      {'title': 'আল-কুরআন', 'sub': 'Holy Quran', 'icon': LucideIcons.bookOpen, 'color': const Color(0xFF8B5CF6), 'route': '/quran'},
+      {'title': 'দুআ ও যিক্‌র', 'sub': 'Duas & Adhkar', 'svg': AppIcons.handsPrayingSvg, 'color': const Color(0xFFF59E0B), 'route': '/dua'},
+      {'title': 'আল্লাহর ৯৯ নাম', 'sub': '99 Names', 'icon': LucideIcons.sparkles, 'color': const Color(0xFFEC4899), 'route': '/settings'},
+      {'title': 'নামাজ নিষিদ্ধ সময়', 'sub': 'Prohibited Times', 'icon': LucideIcons.triangleAlert, 'color': const Color(0xFFEF4444), 'route': 'prohibited'},
     ];
 
     return GridView.builder(
@@ -660,10 +662,18 @@ class HomeScreen extends ConsumerWidget {
                     color: iconColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    t['icon'] as IconData,
-                    color: iconColor,
-                    size: 20,
+                  child: Center(
+                    child: t.containsKey('svg')
+                        ? AppIcons.svg(
+                            t['svg'] as String,
+                            size: 20,
+                            color: iconColor,
+                          )
+                        : Icon(
+                            t['icon'] as IconData,
+                            color: iconColor,
+                            size: 20,
+                          ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -796,8 +806,8 @@ class HomeScreen extends ConsumerWidget {
                     children: [
                       Icon(
                         isDone
-                            ? Icons.check_circle_rounded
-                            : Icons.radio_button_unchecked_rounded,
+                            ? LucideIcons.circleCheck
+                            : LucideIcons.circle,
                         color: isDone ? Colors.white : AppColors.inactiveMuted,
                         size: 16,
                       ),
@@ -894,8 +904,8 @@ class HomeScreen extends ConsumerWidget {
                         children: [
                           Icon(
                             fasting.isFastToday
-                                ? Icons.check_circle_rounded
-                                : Icons.circle_outlined,
+                                ? LucideIcons.circleCheck
+                                : LucideIcons.circle,
                             size: 14,
                             color: fasting.isFastToday
                                 ? AppColors.activeGreen
@@ -930,7 +940,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.nightlight_round,
+                          const Icon(LucideIcons.moon,
                               color: AppColors.primary, size: 20),
                           const SizedBox(width: 8),
                           Column(
@@ -961,7 +971,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.wb_sunny_rounded,
+                          const Icon(LucideIcons.sunset,
                               color: Color(0xFFEA580C), size: 20),
                           const SizedBox(width: 8),
                           Column(
@@ -1026,7 +1036,7 @@ class HomeScreen extends ConsumerWidget {
                       color: AppColors.gold.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.format_quote_rounded,
+                    child: const Icon(LucideIcons.quote,
                         color: AppColors.goldDark, size: 16),
                   ),
                   const SizedBox(width: 8),
