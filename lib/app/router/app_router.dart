@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/calendar/presentation/calendar_screen.dart';
 import '../../features/dua/presentation/dua_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/home/presentation/ramadan_checklist_screen.dart';
 import '../../features/names/presentation/names_screen.dart';
 import '../../features/prayer_times/presentation/prayer_times_screen.dart';
 import '../../features/qibla/presentation/qibla_screen.dart';
+import '../../features/settings/presentation/notification_settings_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/tasbeeh/presentation/tasbeeh_screen.dart';
+import '../../features/tracker/presentation/tracker_screen.dart';
 import 'scaffold_with_nav_bar.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
@@ -114,6 +117,30 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) => _buildSlidePage(
         key: state.pageKey,
         child: const NamesScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/notification-settings',
+      parentNavigatorKey: _rootNavigatorKey,
+      pageBuilder: (context, state) => _buildSlidePage(
+        key: state.pageKey,
+        child: const NotificationSettingsScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/tracker',
+      parentNavigatorKey: _rootNavigatorKey,
+      pageBuilder: (context, state) => _buildSlidePage(
+        key: state.pageKey,
+        child: const TrackerScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/calendar',
+      parentNavigatorKey: _rootNavigatorKey,
+      pageBuilder: (context, state) => _buildSlidePage(
+        key: state.pageKey,
+        child: const CalendarScreen(),
       ),
     ),
   ],

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
+import '../../../core/services/widget_sync_service.dart';
 import '../../../core/utils/bangla_numbers.dart';
 import '../../prayer_times/domain/prayer_model.dart';
 import '../../prayer_times/presentation/city_picker_sheet.dart';
@@ -28,6 +29,29 @@ class HomeScreen extends ConsumerWidget {
     final fasting = ref.watch(fastingProvider);
     final prayerTracker = ref.watch(prayerTrackerProvider);
     final dailyHadithAsync = ref.watch(dailyHadithProvider);
+
+    // Sync Home Screen Widgets whenever prayer times or city is updated
+    ref.listen(dayPrayerTimesProvider, (prev, next) {
+      final prayers = next.valueOrNull;
+      final currentCity = ref.read(selectedCityProvider).valueOrNull;
+      if (prayers != null && currentCity != null) {
+        final currentCountdown = ref.read(countdownProvider);
+        final hijri = HijriCalendar.now();
+        final hMonth =
+            BanglaUtils.hijriMonthBengali[hijri.hMonth] ?? hijri.longMonthName;
+        final hDate =
+            '${BanglaUtils.toBanglaDigits(hijri.hDay)} $hMonth, ${BanglaUtils.toBanglaDigits(hijri.hYear)} হিজরি';
+
+        WidgetSyncService.instance.syncAllWidgets(
+          city: currentCity,
+          dayPrayers: prayers,
+          hijriDateString: hDate,
+          nextWaqtName: currentCountdown?.prayerName,
+          nextWaqtTime: currentCountdown?.targetTime,
+          remainingDuration: currentCountdown?.remaining,
+        );
+      }
+    });
 
     final now = clock.value ?? DateTime.now();
     final timeFormat = DateFormat('hh:mm');
@@ -701,6 +725,20 @@ class HomeScreen extends ConsumerWidget {
         'route': '/names',
       },
       {
+        'title': 'আমল ট্র্যাকার',
+        'sub': 'Daily Tracker',
+        'icon': LucideIcons.calendarCheck,
+        'color': const Color(0xFF0D9488),
+        'route': '/tracker',
+      },
+      {
+        'title': 'হিজরি ক্যালেন্ডার',
+        'sub': 'Hijri Calendar',
+        'icon': LucideIcons.calendar,
+        'color': const Color(0xFF6366F1),
+        'route': '/calendar',
+      },
+      {
         'title': 'নামাজ নিষিদ্ধ সময়',
         'sub': 'Prohibited Times',
         'icon': LucideIcons.triangleAlert,
@@ -759,7 +797,10 @@ class HomeScreen extends ConsumerWidget {
               );
             } else if (route == '/qibla' ||
                 route == '/tasbeeh' ||
-                route == '/names') {
+                route == '/names' ||
+                route == '/tracker' ||
+                route == '/calendar' ||
+                route == '/notification-settings') {
               context.push(route);
             } else {
               context.go(route);

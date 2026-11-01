@@ -143,6 +143,18 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: 'Search, save, and share duas',
               onTap: () => context.push('/dua'),
             ),
+            _buildSettingTile(
+              icon: LucideIcons.calendarCheck,
+              title: 'Daily Tracker (আমল ও নামাজ ট্র্যাকার)',
+              subtitle: 'Track 5 prayers, fasting, streaks & Qaza',
+              onTap: () => context.push('/tracker'),
+            ),
+            _buildSettingTile(
+              icon: LucideIcons.calendar,
+              title: 'Islamic Calendar (হিজরি ক্যালেন্ডার)',
+              subtitle: 'Dual Gregorian-Hijri calendar & events',
+              onTap: () => context.push('/calendar'),
+            ),
 
             const SizedBox(height: 20),
 
@@ -155,9 +167,9 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _buildSettingTile(
               icon: LucideIcons.bellRing,
-              title: 'Adhan & Prayer Alarms',
-              subtitle: 'Customize Azan sounds & vibration',
-              onTap: () => _showUnavailable(context, 'Adhan & prayer alarms'),
+              title: 'Adhan & Prayer Alarms (আযান ও অ্যালার্ম)',
+              subtitle: 'Customize Azan sounds, alarms & reminders',
+              onTap: () => context.push('/notification-settings'),
             ),
             _buildSettingTile(
               icon: LucideIcons.info,

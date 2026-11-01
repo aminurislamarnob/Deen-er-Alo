@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class BanglaUtils {
   BanglaUtils._();
 
@@ -18,6 +20,12 @@ class BanglaUtils {
       }
     }
     return buffer.toString();
+  }
+
+  static String formatBanglaTime(DateTime dt) {
+    final f = DateFormat('hh:mm');
+    final p = dt.hour >= 12 ? 'PM' : 'AM';
+    return '${toBanglaDigits(f.format(dt))} $p';
   }
 
   static const Map<int, String> hijriMonthBengali = {

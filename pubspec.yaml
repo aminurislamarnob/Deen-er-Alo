@@ -22,6 +22,11 @@ dependencies:
   # Local Storage & Utilities
   shared_preferences: ^2.3.4
   intl: ^0.20.2
+  timezone: ^0.10.0
+
+  # System Integration, Alarms & Notifications
+  flutter_local_notifications: ^18.0.1
+  home_widget: ^0.7.0
 
   # Islamic Engines
   adhan: ^2.0.0+1
