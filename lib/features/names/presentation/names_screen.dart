@@ -5,6 +5,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../domain/allah_name_model.dart';
 import 'names_provider.dart';
+import '../../../app/theme/app_fonts.dart';
 import 'widgets/name_detail_sheet.dart';
 
 class NamesScreen extends ConsumerStatefulWidget {
@@ -278,10 +279,11 @@ class _NamesScreenState extends ConsumerState<NamesScreen> {
                       item.nameArabic,
                       textDirection: TextDirection.rtl,
                       maxLines: 1,
-                      style: const TextStyle(
-                        fontSize: 22,
+                      style: AppFonts.arabicStyle(
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
+                        height: 1.5,
                       ),
                     ),
                   ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_fonts.dart';
 import '../../domain/allah_name_model.dart';
 
 class NameDetailSheet extends StatelessWidget {
@@ -135,11 +136,12 @@ class NameDetailSheet extends StatelessWidget {
                   child: Text(
                     name.nameArabic,
                     textDirection: TextDirection.rtl,
-                    style: const TextStyle(
-                      fontSize: 40,
+                    // No letterSpacing: it breaks the joins between Arabic letters.
+                    style: AppFonts.arabicStyle(
+                      fontSize: 44,
                       fontWeight: FontWeight.bold,
                       color: AppColors.goldLight,
-                      letterSpacing: 1.2,
+                      height: 1.6,
                     ),
                   ),
                 ),

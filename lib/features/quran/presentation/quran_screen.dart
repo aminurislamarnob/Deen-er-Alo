@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../../app/theme/app_fonts.dart';
 import '../../../app/theme/app_colors.dart';
 
 class QuranScreen extends StatelessWidget {
@@ -209,10 +210,12 @@ class QuranScreen extends StatelessWidget {
           ),
           Text(
             arabicText,
-            style: const TextStyle(
-              fontSize: 20,
+            textDirection: TextDirection.rtl,
+            style: AppFonts.arabicStyle(
+              fontSize: 22,
               fontWeight: FontWeight.bold,
               color: AppColors.primary,
+              height: 1.4,
             ),
           ),
         ],

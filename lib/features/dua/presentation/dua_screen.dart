@@ -8,6 +8,8 @@ import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../domain/dua_search.dart';
 import '../domain/search_normalizer.dart';
+import '../../../core/widgets/arabic_text.dart';
+import '../domain/dua_content_parser.dart';
 import 'dua_bookmark_provider.dart';
 
 class DuaScreen extends ConsumerStatefulWidget {
@@ -433,14 +435,7 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
                           color: AppColors.bgLight,
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: Text(
-                          _cleanContent(content),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            height: 1.6,
-                            color: AppColors.textDark,
-                          ),
-                        ),
+                        child: _DuaContent(html: content),
                       ),
                       const SizedBox(height: 10),
                       SizedBox(
@@ -565,5 +560,88 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
         ),
       ),
     );
+  }
+}
+
+/// Renders a dua's HTML as typed blocks: Arabic right-to-left in the Arabic
+/// font, headings, narrator chain, Bengali text and source reference.
+class _DuaContent extends StatelessWidget {
+  final String html;
+
+  const _DuaContent({required this.html});
+
+  @override
+  Widget build(BuildContext context) {
+    final blocks = DuaContentParser.parse(html);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < blocks.length; i++) ...[
+          if (i > 0) SizedBox(height: _gapBefore(blocks[i].kind)),
+          _buildBlock(blocks[i]),
+        ],
+      ],
+    );
+  }
+
+  static double _gapBefore(DuaBlockKind kind) {
+    switch (kind) {
+      case DuaBlockKind.heading:
+        return 16;
+      case DuaBlockKind.arabic:
+        return 12;
+      default:
+        return 8;
+    }
+  }
+
+  Widget _buildBlock(DuaBlock block) {
+    switch (block.kind) {
+      case DuaBlockKind.heading:
+        return Text(
+          block.text,
+          style: const TextStyle(
+            fontSize: 14.5,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primary,
+            height: 1.5,
+          ),
+        );
+      case DuaBlockKind.arabic:
+        return ArabicText(
+          block.text,
+          fontSize: 23,
+          color: AppColors.textDark,
+          height: 2.0,
+        );
+      case DuaBlockKind.narrator:
+        return Text(
+          block.text,
+          style: const TextStyle(
+            fontSize: 13,
+            height: 1.6,
+            color: AppColors.textSubdued,
+          ),
+        );
+      case DuaBlockKind.body:
+        return Text(
+          block.text,
+          style: const TextStyle(
+            fontSize: 14,
+            height: 1.6,
+            color: AppColors.textDark,
+          ),
+        );
+      case DuaBlockKind.reference:
+        return Text(
+          block.text,
+          style: const TextStyle(
+            fontSize: 12,
+            height: 1.5,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textSubdued,
+          ),
+        );
+    }
   }
 }

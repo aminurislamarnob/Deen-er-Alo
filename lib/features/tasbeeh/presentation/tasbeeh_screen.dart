@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../domain/dhikr_item.dart';
+import '../../../app/theme/app_fonts.dart';
 import 'tasbeeh_provider.dart';
 
 /// Standard target choices shown as pills (0 = unlimited).
@@ -413,10 +414,11 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
               currentDhikr.arabicText,
               textDirection: TextDirection.rtl,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 26,
+              style: AppFonts.arabicStyle(
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
+                height: 1.7,
               ),
             ),
             const SizedBox(height: 4),
