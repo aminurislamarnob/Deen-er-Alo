@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../../app/theme/app_colors.dart';
 import 'city_picker_sheet.dart';
 import 'prayer_providers.dart';
@@ -92,29 +92,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 // Safe Back Button
-                                InkWell(
-                                  onTap: () {
-                                    if (Navigator.canPop(context)) {
-                                      Navigator.pop(context);
-                                    } else {
-                                      context.go('/home');
-                                    }
-                                  },
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Container(
-                                    width: 38,
-                                    height: 38,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      LucideIcons.arrowLeft,
-                                      color: AppColors.primaryDark,
-                                      size: 18,
-                                    ),
-                                  ),
-                                ),
+                                const AppBackButton(),
 
                                 const Text(
                                   'নামাজের সময়সূচি (Prayer Times)',

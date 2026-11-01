@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../app/theme/app_colors.dart';
+import '../../../core/widgets/app_back_button.dart';
 import 'dua_bookmark_provider.dart';
 
 class DuaScreen extends ConsumerStatefulWidget {
@@ -125,16 +125,10 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
     return Scaffold(
       backgroundColor: AppColors.primaryDark,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
-          tooltip: 'ফিরে যান',
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/home');
-            }
-          },
+        leadingWidth: 62,
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 16),
+          child: AppBackButton(),
         ),
         title: const Text('দুআ ও যিক্‌র (Duas & Adhkar)'),
         backgroundColor: Colors.transparent,

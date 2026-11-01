@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../domain/allah_name_model.dart';
 import 'names_provider.dart';
 import 'widgets/name_detail_sheet.dart';
@@ -31,15 +31,10 @@ class _NamesScreenState extends ConsumerState<NamesScreen> {
     return Scaffold(
       backgroundColor: AppColors.primaryDark,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/home');
-            }
-          },
+        leadingWidth: 62,
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 16),
+          child: AppBackButton(),
         ),
         title: const Text('আল্লাহর ৯৯ নাম (Asmaul Husna)'),
         backgroundColor: Colors.transparent,

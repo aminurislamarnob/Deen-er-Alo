@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../prayer_times/domain/prayer_model.dart';
 import '../../prayer_times/presentation/prayer_providers.dart';
@@ -30,11 +31,7 @@ class RamadanChecklistScreen extends ConsumerWidget {
                 // Top App Bar with back button
                 Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(LucideIcons.arrowLeft,
-                          color: Colors.white, size: 20),
-                      onPressed: () => context.pop(),
-                    ),
+                    const AppBackButton(),
                     const Expanded(
                       child: Center(
                         child: Text(
