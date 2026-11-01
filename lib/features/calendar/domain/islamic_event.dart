@@ -7,6 +7,9 @@ class IslamicEvent {
   final bool isMajor;
   final bool isFastingRecommended;
 
+  /// Recurring monthly sunnah fast on the 13th-15th (Ayyam al-Beed).
+  final bool isAyyamBeed;
+
   const IslamicEvent({
     required this.hijriMonth,
     required this.hijriDay,
@@ -15,5 +18,6 @@ class IslamicEvent {
     required this.descriptionBn,
     this.isMajor = false,
     this.isFastingRecommended = false,
+    this.isAyyamBeed = false,
   });
 }

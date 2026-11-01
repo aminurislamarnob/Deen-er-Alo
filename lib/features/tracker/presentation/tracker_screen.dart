@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/utils/bangla_numbers.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../../calendar/domain/bengali_date_names.dart';
+import '../../calendar/domain/hijri_utils.dart';
 import '../../prayer_times/domain/prayer_model.dart';
 import '../domain/habit_models.dart';
 import 'habit_tracker_provider.dart';
@@ -14,14 +15,17 @@ class TrackerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedDate = ref.watch(selectedTrackerDateProvider);
-    final habitRecordAsync = ref.watch(currentHabitRecordProvider);
+    final selectedDate = dateOnly(ref.watch(selectedTrackerDateProvider));
+    final recordProvider = habitRecordProvider(selectedDate);
+    final habitRecordAsync = ref.watch(recordProvider);
     final streakSummaryAsync = ref.watch(habitStreakSummaryProvider);
     final qazaBalance = ref.watch(qazaCounterProvider);
-    final notifier = ref.read(currentHabitRecordProvider.notifier);
+    final notifier = ref.read(recordProvider.notifier);
 
-    final isToday = _isSameDay(selectedDate, DateTime.now());
-    final dateDisplay = DateFormat('d MMMM, yyyy').format(selectedDate);
+    final today = dateOnly(DateTime.now());
+    final isToday = isSameDay(selectedDate, today);
+    final canGoForward = selectedDate.isBefore(today);
+    final dateDisplay = BengaliDateNames.dayMonthYear(selectedDate);
 
     return Scaffold(
       backgroundColor: AppColors.bgLight,
@@ -62,16 +66,17 @@ class TrackerScreen extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(LucideIcons.chevronLeft, size: 20),
                   color: AppColors.textDark,
+                  tooltip: 'আগের দিন',
                   onPressed: () {
                     ref.read(selectedTrackerDateProvider.notifier).state =
-                        selectedDate.subtract(const Duration(days: 1));
+                        addDays(selectedDate, -1);
                   },
                 ),
                 Expanded(
                   child: Column(
                     children: [
                       Text(
-                        isToday ? 'আজ' : 'তারিখ',
+                        isToday ? 'আজ' : BengaliDateNames.weekday(selectedDate),
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.primary,
@@ -80,7 +85,7 @@ class TrackerScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        BanglaUtils.toBanglaDigits(dateDisplay),
+                        dateDisplay,
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -93,10 +98,16 @@ class TrackerScreen extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(LucideIcons.chevronRight, size: 20),
                   color: AppColors.textDark,
-                  onPressed: () {
-                    ref.read(selectedTrackerDateProvider.notifier).state =
-                        selectedDate.add(const Duration(days: 1));
-                  },
+                  disabledColor: Colors.grey.shade300,
+                  tooltip: canGoForward ? 'পরের দিন' : null,
+                  // Future days cannot be logged.
+                  onPressed: canGoForward
+                      ? () {
+                          final next = addDays(selectedDate, 1);
+                          ref.read(selectedTrackerDateProvider.notifier).state =
+                              next.isAfter(today) ? today : next;
+                        }
+                      : null,
                 ),
               ],
             ),
@@ -107,8 +118,9 @@ class TrackerScreen extends ConsumerWidget {
           // Streak & Weekly Summary Card
           streakSummaryAsync.when(
             data: (summary) => _buildStreakCard(summary),
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+            // Same-size placeholder so the page does not jump when loaded.
+            loading: () => _buildStreakCard(null),
+            error: (_, __) => _buildStreakCard(null),
           ),
 
           const SizedBox(height: 24),
@@ -123,7 +135,7 @@ class TrackerScreen extends ConsumerWidget {
                 child: CircularProgressIndicator(color: AppColors.primary),
               ),
             ),
-            error: (err, _) => Text('Error: $err'),
+            error: (_, __) => _buildErrorCard(() => notifier.reload()),
           ),
 
           const SizedBox(height: 24),
@@ -150,14 +162,56 @@ class TrackerScreen extends ConsumerWidget {
 
           // Qaza Prayer Counter Card
           _buildSectionHeader('কাজা নামাজের হিসাব সংরক্ষণ'),
-          _buildQazaCard(ref, qazaBalance),
+          _buildQazaCard(context, ref, qazaBalance),
         ],
       ),
     );
   }
 
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
+  Widget _buildErrorCard(VoidCallback onRetry) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        children: [
+          const Icon(LucideIcons.circleAlert, color: AppColors.dangerRed),
+          const SizedBox(height: 8),
+          const Text(
+            'দুঃখিত, এই দিনের তথ্য লোড করা যায়নি।',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'অনুগ্রহ করে আবার চেষ্টা করুন।',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: AppColors.textSubdued),
+          ),
+          const SizedBox(height: 8),
+          TextButton(onPressed: onRetry, child: const Text('আবার চেষ্টা করুন')),
+        ],
+      ),
+    );
+  }
+
+  /// Text that renders as a translucent bar of the same size while loading.
+  Widget _maybeSkeleton(String text, TextStyle style, bool loading) {
+    if (!loading) return Text(text, style: style);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(text, style: style.copyWith(color: Colors.transparent)),
+    );
   }
 
   Widget _buildSectionHeader(String title) {
@@ -175,7 +229,10 @@ class TrackerScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStreakCard(HabitStreakSummary summary) {
+  Widget _buildStreakCard(HabitStreakSummary? summary) {
+    final loading = summary == null;
+    String n(int Function(HabitStreakSummary s) f) =>
+        summary == null ? '০০' : BanglaUtils.toBanglaDigits(f(summary));
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -199,28 +256,30 @@ class TrackerScreen extends ConsumerWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(LucideIcons.flame, color: AppColors.gold, size: 24),
+                child: const Icon(
+                  LucideIcons.flame,
+                  color: AppColors.gold,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'ধারাবাহিক আমল: ${BanglaUtils.toBanglaDigits(summary.streakDays)} দিন',
-                      style: const TextStyle(
+                    _maybeSkeleton(
+                      'ধারাবাহিক আমল: ${n((s) => s.streakDays)} দিন',
+                      const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
+                      loading,
                     ),
                     const SizedBox(height: 2),
                     const Text(
-                      'আল্লাহর সন্তুষ্টির পথে আপনার প্রচেষ্টা অব্যাহত রাখুন',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
+                      'পাঁচ ওয়াক্ত নামাজ আদায়ের ধারাবাহিক দিন। আল্লাহর সন্তুষ্টির পথে প্রচেষ্টা অব্যাহত রাখুন',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                   ],
                 ),
@@ -239,17 +298,30 @@ class TrackerScreen extends ConsumerWidget {
               children: [
                 _buildStatColumn(
                   'গত ৭ দিনে নামাজ',
-                  '${BanglaUtils.toBanglaDigits(summary.weeklyPrayersOffered)}/৩৫',
+                  '${n((s) => s.weeklyPrayersOffered)}/৩৫',
+                  loading,
                 ),
-                Container(width: 1, height: 28, color: Colors.white24),
+                Container(
+                  width: 1,
+                  height: 28,
+                  margin: const EdgeInsets.symmetric(horizontal: 6),
+                  color: Colors.white24,
+                ),
                 _buildStatColumn(
                   'জামাতে আদায়',
-                  '${BanglaUtils.toBanglaDigits(summary.weeklyJamaatCount)} ওয়াক্ত',
+                  '${n((s) => s.weeklyJamaatCount)} ওয়াক্ত',
+                  loading,
                 ),
-                Container(width: 1, height: 28, color: Colors.white24),
+                Container(
+                  width: 1,
+                  height: 28,
+                  margin: const EdgeInsets.symmetric(horizontal: 6),
+                  color: Colors.white24,
+                ),
                 _buildStatColumn(
-                  'রোজার দিন',
-                  '${BanglaUtils.toBanglaDigits(summary.monthlyFastingDays)} দিন',
+                  '৩০ দিনে রোজা',
+                  '${n((s) => s.monthlyFastingDays)} দিন',
+                  loading,
                 ),
               ],
             ),
@@ -259,36 +331,39 @@ class TrackerScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatColumn(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            color: AppColors.gold,
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-          ),
+  Widget _buildStatColumn(String label, String value, bool loading) {
+    return Expanded(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          children: [
+            _maybeSkeleton(
+              value,
+              const TextStyle(
+                color: AppColors.gold,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+              loading,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white70, fontSize: 10),
+            ),
+          ],
         ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 10,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
   Widget _buildPrayersCard(
     BuildContext context,
     DailyHabitRecord record,
-    CurrentHabitRecordNotifier notifier,
+    HabitRecordNotifier notifier,
   ) {
     final prayers = [
-      (PrayerType.fajr, 'ফজর (Fazr)'),
+      (PrayerType.fajr, 'ফজর (Fajr)'),
       (PrayerType.dhuhr, 'জোহর (Dhuhr)'),
       (PrayerType.asr, 'আসর (Asr)'),
       (PrayerType.maghrib, 'মাগরিব (Maghrib)'),
@@ -306,12 +381,21 @@ class TrackerScreen extends ConsumerWidget {
           for (int i = 0; i < prayers.length; i++) ...[
             _buildPrayerRow(
               title: prayers[i].$2,
-              currentStatus: record.prayers[prayers[i].$1] ?? PrayerStatus.notOffered,
-              onStatusSelected: (status) =>
-                  notifier.setPrayerStatus(prayers[i].$1, status),
+              currentStatus: record.prayers[prayers[i].$1] ?? PrayerStatus.none,
+              // Tapping the selected pill again clears it ("not logged").
+              onStatusSelected: (status) => notifier.setPrayerStatus(
+                prayers[i].$1,
+                status == record.prayers[prayers[i].$1]
+                    ? PrayerStatus.none
+                    : status,
+              ),
             ),
             if (i < prayers.length - 1)
-              const Divider(height: 1, thickness: 1, color: AppColors.cardBorder),
+              const Divider(
+                height: 1,
+                thickness: 1,
+                color: AppColors.cardBorder,
+              ),
           ],
         ],
       ),
@@ -337,6 +421,7 @@ class TrackerScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 10),
+          // 2x2 layout so longer labels like "আদায় হয়নি" fit comfortably.
           Row(
             children: [
               _buildPrayerStatusPill(
@@ -354,9 +439,13 @@ class TrackerScreen extends ConsumerWidget {
                 activeColor: const Color(0xFF0284C7),
                 onTap: () => onStatusSelected(PrayerStatus.alone),
               ),
-              const SizedBox(width: 8),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
               _buildPrayerStatusPill(
-                label: 'কাজা',
+                label: 'কাজা আদায়',
                 status: PrayerStatus.qaza,
                 current: currentStatus,
                 activeColor: const Color(0xFFD97706),
@@ -364,10 +453,10 @@ class TrackerScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               _buildPrayerStatusPill(
-                label: 'আদায় হয়নি',
+                label: 'আদায় হয়নি',
                 status: PrayerStatus.notOffered,
                 current: currentStatus,
-                activeColor: Colors.grey.shade400,
+                activeColor: const Color(0xFFDC2626),
                 onTap: () => onStatusSelected(PrayerStatus.notOffered),
               ),
             ],
@@ -391,18 +480,22 @@ class TrackerScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(10),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 6),
           decoration: BoxDecoration(
             color: isSelected ? activeColor : const Color(0xFFF1F5F9),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? Colors.white : AppColors.textDark,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? Colors.white : AppColors.textDark,
+              ),
             ),
           ),
         ),
@@ -412,7 +505,7 @@ class TrackerScreen extends ConsumerWidget {
 
   Widget _buildFastingCard(
     DailyHabitRecord record,
-    CurrentHabitRecordNotifier notifier,
+    HabitRecordNotifier notifier,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -445,13 +538,15 @@ class TrackerScreen extends ConsumerWidget {
 
   Widget _buildGoodDeedsCard(
     DailyHabitRecord record,
-    CurrentHabitRecordNotifier notifier,
+    HabitRecordNotifier notifier,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
+    // Material (not a decorated Container) so ListTile ink is visible.
+    return Material(
+      color: Colors.white,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder),
+        side: const BorderSide(color: AppColors.cardBorder),
       ),
       child: Column(
         children: [
@@ -503,7 +598,9 @@ class TrackerScreen extends ConsumerWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: checked ? AppColors.primaryLight.withValues(alpha: 0.15) : const Color(0xFFF1F5F9),
+          color: checked
+              ? AppColors.primaryLight.withValues(alpha: 0.15)
+              : const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(
@@ -523,10 +620,7 @@ class TrackerScreen extends ConsumerWidget {
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(
-          fontSize: 12,
-          color: AppColors.textSubdued,
-        ),
+        style: const TextStyle(fontSize: 12, color: AppColors.textSubdued),
       ),
       trailing: Checkbox(
         value: checked,
@@ -538,7 +632,7 @@ class TrackerScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildQazaCard(WidgetRef ref, int balance) {
+  Widget _buildQazaCard(BuildContext context, WidgetRef ref, int balance) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -546,62 +640,304 @@ class TrackerScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.cardBorder),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(LucideIcons.clock, color: Color(0xFFD97706), size: 24),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'মোট বকেয়া কাজা নামাজ',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  'অবশিষ্ট: ${BanglaUtils.toBanglaDigits(balance)} ওয়াক্ত',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFFD97706),
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: const Icon(
+                  LucideIcons.clock,
+                  color: Color(0xFFD97706),
+                  size: 24,
                 ),
-              ],
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'মোট বকেয়া কাজা নামাজ',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'অবশিষ্ট: ${BanglaUtils.toBanglaDigits(balance)} ওয়াক্ত',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFFD97706),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(LucideIcons.minusCircle, color: Colors.grey),
+                tooltip: 'এক ওয়াক্ত কমান',
+                onPressed: () {
+                  ref.read(qazaCounterProvider.notifier).decrement();
+                },
+              ),
+              Text(
+                BanglaUtils.toBanglaDigits(balance),
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(
+                  LucideIcons.plusCircle,
+                  color: AppColors.primary,
+                ),
+                tooltip: 'এক ওয়াক্ত যোগ করুন',
+                onPressed: () {
+                  ref.read(qazaCounterProvider.notifier).increment();
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'কোনো নামাজ "আদায় হয়নি" চিহ্নিত করলে বকেয়ায় এক ওয়াক্ত যোগ হয়; পরে "কাজা আদায়" বা আদায় চিহ্নিত করলে তা কমে যায়।',
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.textSubdued,
+              height: 1.4,
             ),
           ),
-          IconButton(
-            icon: const Icon(LucideIcons.minusCircle, color: Colors.grey),
-            onPressed: () {
-              ref.read(qazaCounterProvider.notifier).decrement();
-            },
-          ),
-          Text(
-            BanglaUtils.toBanglaDigits(balance),
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
+              icon: const Icon(LucideIcons.calculator, size: 18),
+              label: const Text(
+                'পুরোনো বকেয়া হিসাব করুন',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onPressed: () => _showBacklogCalculator(context, ref),
             ),
-          ),
-          IconButton(
-            icon: const Icon(LucideIcons.plusCircle, color: AppColors.primary),
-            onPressed: () {
-              ref.read(qazaCounterProvider.notifier).increment();
-            },
           ),
         ],
+      ),
+    );
+  }
+
+  void _showBacklogCalculator(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => QazaBacklogSheet(
+        onConfirm: (prayers) =>
+            ref.read(qazaCounterProvider.notifier).addBacklog(prayers),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet that estimates missed prayers from a period
+/// (years / months / days × 5 fard prayers) and, after confirmation, adds
+/// them to the qaza balance.
+class QazaBacklogSheet extends StatefulWidget {
+  final Future<void> Function(int prayers) onConfirm;
+
+  const QazaBacklogSheet({super.key, required this.onConfirm});
+
+  @override
+  State<QazaBacklogSheet> createState() => _QazaBacklogSheetState();
+}
+
+class _QazaBacklogSheetState extends State<QazaBacklogSheet> {
+  final _years = TextEditingController();
+  final _months = TextEditingController();
+  final _days = TextEditingController();
+
+  @override
+  void dispose() {
+    _years.dispose();
+    _months.dispose();
+    _days.dispose();
+    super.dispose();
+  }
+
+  /// Parses ASCII or Bangla digits; empty/invalid → 0.
+  static int _parse(String raw) {
+    const bangla = '০১২৩৪৫৬৭৮৯';
+    final ascii = raw.trim().split('').map((c) {
+      final i = bangla.indexOf(c);
+      return i >= 0 ? '$i' : c;
+    }).join();
+    final v = int.tryParse(ascii) ?? 0;
+    return v < 0 ? 0 : v;
+  }
+
+  int get _total => qazaBacklogPrayers(
+    years: _parse(_years.text),
+    months: _parse(_months.text),
+    days: _parse(_days.text),
+  );
+
+  Widget _field(String label, TextEditingController c) {
+    return Expanded(
+      child: TextField(
+        controller: c,
+        keyboardType: TextInputType.number,
+        textAlign: TextAlign.center,
+        maxLength: 4,
+        onChanged: (_) => setState(() {}),
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: '০',
+          counterText: '',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          isDense: true,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirm() async {
+    final total = _total;
+    if (total <= 0) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('নিশ্চিত করুন'),
+        content: Text(
+          'মোট ${BanglaUtils.toBanglaDigits(total)} ওয়াক্ত কাজা নামাজ আপনার বকেয়া হিসাবে যোগ করা হবে। আপনি কি নিশ্চিত?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('বাতিল'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('যোগ করুন'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await widget.onConfirm(total);
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    Navigator.pop(context);
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(
+          '${BanglaUtils.toBanglaDigits(total)} ওয়াক্ত কাজা বকেয়ায় যোগ হয়েছে',
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final total = _total;
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          16,
+          20,
+          20 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'পুরোনো কাজা নামাজের হিসাব',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'যত সময় নামাজ আদায় হয়নি তা আনুমানিক লিখুন। প্রতিদিন ৫ ওয়াক্ত ফরজ নামাজ ধরে হিসাব করা হবে (১ বছর = ৩৬৫ দিন, ১ মাস = ৩০ দিন)।',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSubdued,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  _field('বছর', _years),
+                  const SizedBox(width: 10),
+                  _field('মাস', _months),
+                  const SizedBox(width: 10),
+                  _field('দিন', _days),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'মোট: ${BanglaUtils.toBanglaDigits(total)} ওয়াক্ত নামাজ',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF92400E),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: total > 0 ? _confirm : null,
+                  child: const Text('বকেয়া হিসাবে যোগ করুন'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
