@@ -21,7 +21,7 @@ extension PrayerTypeX on PrayerType {
       case PrayerType.asr:
         return 'Asr';
       case PrayerType.maghrib:
-        return 'Iftar';
+        return 'Maghrib';
       case PrayerType.isha:
         return 'Esha';
     }
@@ -38,7 +38,7 @@ extension PrayerTypeX on PrayerType {
       case PrayerType.asr:
         return 'আসর';
       case PrayerType.maghrib:
-        return 'মাগরিব (ইফতার)';
+        return 'মাগরিব';
       case PrayerType.isha:
         return 'এশা';
     }
@@ -60,6 +60,8 @@ extension PrayerTypeX on PrayerType {
         return Icons.bedtime_rounded;
     }
   }
+
+  bool get isFard => this != PrayerType.sunrise;
 }
 
 class PrayerScheduleItem {
@@ -80,6 +82,10 @@ class PrayerScheduleItem {
     this.isCurrent = false,
     this.isNext = false,
   });
+
+  bool isActiveAt(DateTime now) {
+    return now.isAfter(startTime) && now.isBefore(endTime);
+  }
 
   PrayerScheduleItem copyWith({
     bool? isAlarmActive,
@@ -107,8 +113,8 @@ class DayPrayerTimes {
   final DateTime asr;
   final DateTime maghrib;
   final DateTime isha;
-  final DateTime? sehriEnd; // If available (e.g. from IFA)
-  final DateTime? iftar;    // If available (from IFA or Maghrib)
+  final DateTime? sehriEnd;
+  final DateTime? iftar;
   final List<PrayerScheduleItem> scheduleItems;
 
   const DayPrayerTimes({
@@ -131,7 +137,7 @@ class NextPrayerCountdown {
   final String prayerName;
   final DateTime targetTime;
   final Duration remaining;
-  final double progress; // 0.0 to 1.0 between previous prayer and next prayer
+  final double progress;
 
   const NextPrayerCountdown({
     required this.nextPrayer,
@@ -142,3 +148,21 @@ class NextPrayerCountdown {
   });
 }
 
+class ProhibitedTimeRange {
+  final String title;
+  final String bengaliTitle;
+  final DateTime startTime;
+  final DateTime endTime;
+  final String reason;
+
+  const ProhibitedTimeRange({
+    required this.title,
+    required this.bengaliTitle,
+    required this.startTime,
+    required this.endTime,
+    required this.reason,
+  });
+
+  bool contains(DateTime time) =>
+      time.isAfter(startTime) && time.isBefore(endTime);
+}

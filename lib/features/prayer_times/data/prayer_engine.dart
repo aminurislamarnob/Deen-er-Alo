@@ -12,7 +12,9 @@ class PrayerEngine {
   Future<DayPrayerTimes> calculateDayPrayers({
     required CityModel city,
     required DateTime date,
+    DateTime? now,
   }) async {
+    final effectiveNow = now ?? DateTime.now();
     final coordinates = Coordinates(city.latitude, city.longitude);
     final params = CalculationMethod.karachi.getParameters();
     params.madhab = Madhab.hanafi;
@@ -30,8 +32,9 @@ class PrayerEngine {
     DateTime? sehriEnd;
     DateTime? iftarTime;
 
-    // Check Bangladesh IFA schedule override if applicable
-    if (city.isBangladeshDistrict || city.countryName.toLowerCase() == 'bangladesh') {
+    // Check Bangladesh Islamic Foundation (IFA) schedule override if applicable
+    if (city.isBangladeshDistrict ||
+        city.countryName.toLowerCase() == 'bangladesh') {
       final ifaResult = await _ifaService.getSchedule(
         districtId: city.id,
         date: date,
@@ -50,11 +53,13 @@ class PrayerEngine {
 
     // Next day's fajr for Esha end time
     final nextDayDate = date.add(const Duration(days: 1));
-    final nextDayComponents = DateComponents(nextDayDate.year, nextDayDate.month, nextDayDate.day);
+    final nextDayComponents =
+        DateComponents(nextDayDate.year, nextDayDate.month, nextDayDate.day);
     final nextDayAdhan = PrayerTimes(coordinates, nextDayComponents, params);
     DateTime nextFajr = nextDayAdhan.fajr;
 
-    if (city.isBangladeshDistrict || city.countryName.toLowerCase() == 'bangladesh') {
+    if (city.isBangladeshDistrict ||
+        city.countryName.toLowerCase() == 'bangladesh') {
       final nextDayIfa = await _ifaService.getSchedule(
         districtId: city.id,
         date: nextDayDate,
@@ -64,36 +69,61 @@ class PrayerEngine {
       }
     }
 
+    // Determine currently active prayer interval
+    final isSameDate = effectiveNow.year == date.year &&
+        effectiveNow.month == date.month &&
+        effectiveNow.day == date.day;
+
+    bool isCurrentFajr = isSameDate &&
+        effectiveNow.isAfter(fajr) &&
+        effectiveNow.isBefore(sunrise);
+    bool isCurrentDhuhr = isSameDate &&
+        effectiveNow.isAfter(dhuhr) &&
+        effectiveNow.isBefore(asr);
+    bool isCurrentAsr = isSameDate &&
+        effectiveNow.isAfter(asr) &&
+        effectiveNow.isBefore(maghrib);
+    bool isCurrentMaghrib = isSameDate &&
+        effectiveNow.isAfter(maghrib) &&
+        effectiveNow.isBefore(isha);
+    bool isCurrentIsha = isSameDate &&
+        (effectiveNow.isAfter(isha) || effectiveNow.isBefore(fajr));
+
     final scheduleItems = [
       PrayerScheduleItem(
         type: PrayerType.fajr,
         title: PrayerType.fajr.displayName,
         startTime: fajr,
         endTime: sunrise,
+        isCurrent: isCurrentFajr,
       ),
       PrayerScheduleItem(
         type: PrayerType.dhuhr,
         title: PrayerType.dhuhr.displayName,
         startTime: dhuhr,
         endTime: asr,
+        isCurrent: isCurrentDhuhr,
       ),
       PrayerScheduleItem(
         type: PrayerType.asr,
         title: PrayerType.asr.displayName,
         startTime: asr,
         endTime: maghrib,
+        isCurrent: isCurrentAsr,
       ),
       PrayerScheduleItem(
         type: PrayerType.maghrib,
         title: PrayerType.maghrib.displayName,
         startTime: maghrib,
         endTime: isha,
+        isCurrent: isCurrentMaghrib,
       ),
       PrayerScheduleItem(
         type: PrayerType.isha,
         title: PrayerType.isha.displayName,
         startTime: isha,
         endTime: nextFajr,
+        isCurrent: isCurrentIsha,
       ),
     ];
 
@@ -127,7 +157,7 @@ class PrayerEngine {
     } else if (now.isBefore(dayPrayers.dhuhr)) {
       nextPrayer = PrayerType.dhuhr;
       targetTime = dayPrayers.dhuhr;
-      prevTime = dayPrayers.fajr;
+      prevTime = dayPrayers.sunrise;
     } else if (now.isBefore(dayPrayers.asr)) {
       nextPrayer = PrayerType.asr;
       targetTime = dayPrayers.asr;
@@ -141,9 +171,7 @@ class PrayerEngine {
       targetTime = dayPrayers.isha;
       prevTime = dayPrayers.maghrib;
     } else {
-      // After Isha, next is tomorrow's Fajr
       nextPrayer = PrayerType.fajr;
-      targetTime = dayPrayers.scheduleItems.first.endTime; // Tomorrow's fajr approximated or schedule
       targetTime = dayPrayers.fajr.add(const Duration(days: 1));
       prevTime = dayPrayers.isha;
     }
@@ -151,7 +179,8 @@ class PrayerEngine {
     final remaining = targetTime.difference(now);
     final totalWindow = targetTime.difference(prevTime).inSeconds;
     final elapsed = now.difference(prevTime).inSeconds;
-    final progress = totalWindow > 0 ? (elapsed / totalWindow).clamp(0.0, 1.0) : 0.0;
+    final progress =
+        totalWindow > 0 ? (elapsed / totalWindow).clamp(0.0, 1.0) : 0.0;
 
     return NextPrayerCountdown(
       nextPrayer: nextPrayer,
@@ -161,5 +190,41 @@ class PrayerEngine {
       progress: progress,
     );
   }
-}
 
+  List<ProhibitedTimeRange> getProhibitedTimes(DayPrayerTimes dayPrayers) {
+    return [
+      ProhibitedTimeRange(
+        title: 'Sunrise (সূর্যোদয়)',
+        bengaliTitle: 'সূর্যোদয়ের সময়',
+        startTime: dayPrayers.sunrise,
+        endTime: dayPrayers.sunrise.add(const Duration(minutes: 15)),
+        reason: 'সূর্য ওঠার সময় থেকে আনুমানিক ১৫ মিনিট পর্যন্ত নামাজ পড়া নিষিদ্ধ।',
+      ),
+      ProhibitedTimeRange(
+        title: 'Midday Zenith (দ্বিপ্রহর / যাওয়াল)',
+        bengaliTitle: 'ঠিক দ্বিপ্রহরের সময়',
+        startTime: dayPrayers.dhuhr.subtract(const Duration(minutes: 10)),
+        endTime: dayPrayers.dhuhr,
+        reason: 'সূর্য ঠিক মাথার ওপর থাকা অবস্থায় (যোহরের ওয়াক্ত হওয়ার পূর্বের ১০ মিনিট) নামাজ নিষিদ্ধ।',
+      ),
+      ProhibitedTimeRange(
+        title: 'Sunset (সূর্যাস্ত)',
+        bengaliTitle: 'সূর্যাস্তের সময়',
+        startTime: dayPrayers.maghrib.subtract(const Duration(minutes: 15)),
+        endTime: dayPrayers.maghrib,
+        reason: 'সূর্য ডোবার পূর্ববর্তী আনুমানিক ১৫ মিনিট (সূর্য হলুদ বর্ণ ধারণ থেকে ডোবা পর্যন্ত) নামাজ নিষিদ্ধ (সেদিনের আসর কাজা না থাকলে)।',
+      ),
+    ];
+  }
+
+  ProhibitedTimeRange? getCurrentProhibitedTime(
+      DayPrayerTimes dayPrayers, DateTime now) {
+    final ranges = getProhibitedTimes(dayPrayers);
+    for (final r in ranges) {
+      if (r.contains(now)) {
+        return r;
+      }
+    }
+    return null;
+  }
+}

@@ -35,3 +35,4 @@ class BanglaUtils {
     12: 'জিলহজ',
   };
 }
+

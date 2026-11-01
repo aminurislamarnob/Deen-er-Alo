@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/location_service.dart';
 import '../data/city_repository.dart';
 import '../data/ifa_timetable_service.dart';
@@ -62,7 +63,6 @@ class SelectedCityNotifier extends StateNotifier<AsyncValue<CityModel>> {
         await _cityRepo.saveSelectedCity(nearest);
         return true;
       } else {
-        // Fallback to saved
         final savedCity = await _cityRepo.getSavedCity();
         state = AsyncValue.data(savedCity);
         return false;
@@ -86,6 +86,11 @@ final selectedDateProvider = StateProvider<DateTime>((ref) {
   return DateTime.now();
 });
 
+// Real-time Clock Stream (ticks every 1 second)
+final clockStreamProvider = StreamProvider.autoDispose<DateTime>((ref) {
+  return Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
+});
+
 // Day Prayer Times Provider
 final dayPrayerTimesProvider = FutureProvider<DayPrayerTimes>((ref) async {
   final cityAsync = ref.watch(selectedCityProvider);
@@ -94,11 +99,6 @@ final dayPrayerTimesProvider = FutureProvider<DayPrayerTimes>((ref) async {
 
   final city = cityAsync.value ?? CityModel.dhakaDefault();
   return await engine.calculateDayPrayers(city: city, date: date);
-});
-
-// Real-time Clock Stream (ticks every 1 second)
-final clockStreamProvider = StreamProvider.autoDispose<DateTime>((ref) {
-  return Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
 });
 
 // Real-time Countdown Provider
@@ -114,8 +114,28 @@ final countdownProvider = Provider.autoDispose<NextPrayerCountdown?>((ref) {
   return engine.calculateCountdown(dayPrayers: dayPrayers, now: now);
 });
 
-// Prayer Alarm Notification Toggles
+// Prohibited Times Providers
+final prohibitedTimesProvider =
+    Provider.autoDispose<List<ProhibitedTimeRange>>((ref) {
+  final dayPrayers = ref.watch(dayPrayerTimesProvider).value;
+  if (dayPrayers == null) return [];
+  final engine = ref.watch(prayerEngineProvider);
+  return engine.getProhibitedTimes(dayPrayers);
+});
+
+final currentProhibitedTimeProvider =
+    Provider.autoDispose<ProhibitedTimeRange?>((ref) {
+  final dayPrayers = ref.watch(dayPrayerTimesProvider).value;
+  if (dayPrayers == null) return null;
+  final now = ref.watch(clockStreamProvider).value ?? DateTime.now();
+  final engine = ref.watch(prayerEngineProvider);
+  return engine.getCurrentProhibitedTime(dayPrayers, now);
+});
+
+// Prayer Alarm Notification Toggles (Persisted to SharedPreferences)
 class PrayerAlarmNotifier extends StateNotifier<Map<PrayerType, bool>> {
+  static const String _prefPrefix = 'pref_prayer_alarm_';
+
   PrayerAlarmNotifier()
       : super({
           PrayerType.fajr: true,
@@ -123,13 +143,30 @@ class PrayerAlarmNotifier extends StateNotifier<Map<PrayerType, bool>> {
           PrayerType.asr: false,
           PrayerType.maghrib: true,
           PrayerType.isha: false,
-        });
+        }) {
+    _loadAlarms();
+  }
 
-  void toggleAlarm(PrayerType type) {
+  Future<void> _loadAlarms() async {
+    final prefs = await SharedPreferences.getInstance();
+    final Map<PrayerType, bool> map = {};
+    for (final type in PrayerType.values) {
+      if (type == PrayerType.sunrise) continue;
+      final key = '$_prefPrefix${type.name}';
+      map[type] = prefs.getBool(key) ?? state[type] ?? false;
+    }
+    state = map;
+  }
+
+  Future<void> toggleAlarm(PrayerType type) async {
+    final current = state[type] ?? false;
+    final updated = !current;
     state = {
       ...state,
-      type: !(state[type] ?? false),
+      type: updated,
     };
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('$_prefPrefix${type.name}', updated);
   }
 }
 
@@ -137,4 +174,3 @@ final prayerAlarmProvider =
     StateNotifierProvider<PrayerAlarmNotifier, Map<PrayerType, bool>>((ref) {
   return PrayerAlarmNotifier();
 });
-

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../app/theme/app_colors.dart';
 import 'city_picker_sheet.dart';
 import 'prayer_providers.dart';
+import 'prohibited_times_sheet.dart';
 import 'widgets/arc_timer_widget.dart';
 import 'widgets/prayer_card_widget.dart';
 
@@ -13,6 +15,7 @@ class PrayerTimesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCityAsync = ref.watch(selectedCityProvider);
+    final selectedDate = ref.watch(selectedDateProvider);
     final dayPrayersAsync = ref.watch(dayPrayerTimesProvider);
     final countdown = ref.watch(countdownProvider);
     final alarms = ref.watch(prayerAlarmProvider);
@@ -28,6 +31,12 @@ class PrayerTimesScreen extends ConsumerWidget {
     final locationLabel = city != null
         ? '${city.name}, ${city.countryName}'
         : 'Dhaka, Bangladesh';
+
+    final isToday = selectedDate.year == now.year &&
+        selectedDate.month == now.month &&
+        selectedDate.day == now.day;
+
+    final dateDisplayFormat = DateFormat('EEE, d MMMM yyyy');
 
     return Scaffold(
       backgroundColor: AppColors.primaryDark,
@@ -60,6 +69,7 @@ class PrayerTimesScreen extends ConsumerWidget {
           }
 
           return CustomScrollView(
+            physics: const BouncingScrollPhysics(),
             slivers: [
               // Top Arc Header Sliver
               SliverToBoxAdapter(
@@ -70,21 +80,23 @@ class PrayerTimesScreen extends ConsumerWidget {
                   child: SafeArea(
                     bottom: false,
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: 24),
+                      padding: const EdgeInsets.only(bottom: 20),
                       child: Column(
                         children: [
                           // App Bar
                           Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
+                                horizontal: 16, vertical: 6),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                // Circular Back Button
+                                // Safe Back Button
                                 InkWell(
                                   onTap: () {
                                     if (Navigator.canPop(context)) {
                                       Navigator.pop(context);
+                                    } else {
+                                      context.go('/home');
                                     }
                                   },
                                   borderRadius: BorderRadius.circular(20),
@@ -104,15 +116,15 @@ class PrayerTimesScreen extends ConsumerWidget {
                                 ),
 
                                 const Text(
-                                  'Prayer Time',
+                                  'নামাজের সময়সূচি (Prayer Times)',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 18,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
 
-                                // Location change button
+                                // City & Location button
                                 IconButton(
                                   icon: const Icon(
                                     Icons.tune_rounded,
@@ -126,7 +138,81 @@ class PrayerTimesScreen extends ConsumerWidget {
                             ),
                           ),
 
-                          const SizedBox(height: 12),
+                          // Date Switcher Row
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 6),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.chevron_left_rounded,
+                                        color: Colors.white, size: 22),
+                                    onPressed: () {
+                                      ref
+                                          .read(selectedDateProvider.notifier)
+                                          .state = selectedDate.subtract(
+                                              const Duration(days: 1));
+                                    },
+                                  ),
+                                  InkWell(
+                                    onTap: () async {
+                                      final picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: selectedDate,
+                                        firstDate: DateTime(2020),
+                                        lastDate: DateTime(2030),
+                                      );
+                                      if (picked != null) {
+                                        ref
+                                            .read(selectedDateProvider.notifier)
+                                            .state = picked;
+                                      }
+                                    },
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.event_rounded,
+                                            color: AppColors.gold, size: 16),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          isToday
+                                              ? 'আজ, ${dateDisplayFormat.format(selectedDate)}'
+                                              : dateDisplayFormat
+                                                  .format(selectedDate),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.chevron_right_rounded,
+                                        color: Colors.white, size: 22),
+                                    onPressed: () {
+                                      ref
+                                          .read(selectedDateProvider.notifier)
+                                          .state = selectedDate.add(
+                                              const Duration(days: 1));
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
 
                           // Arc Timer Widget
                           ArcTimerWidget(
@@ -146,9 +232,8 @@ class PrayerTimesScreen extends ConsumerWidget {
                 ),
               ),
 
-              // Curved White Sheet with Prayer List
-              SliverFillRemaining(
-                hasScrollBody: false,
+              // Curved White Sheet with Prayer List & Prohibited Times
+              SliverToBoxAdapter(
                 child: Container(
                   decoration: const BoxDecoration(
                     color: Colors.white,
@@ -159,7 +244,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                     alignment: Alignment.topCenter,
                     clipBehavior: Clip.none,
                     children: [
-                      // Little ornamental top notch
+                      // Top notch
                       Positioned(
                         top: -6,
                         child: Container(
@@ -173,9 +258,92 @@ class PrayerTimesScreen extends ConsumerWidget {
                       ),
 
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 26, 20, 24),
+                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Prohibited Time Alert Pill
+                            InkWell(
+                              onTap: () => ProhibitedTimesSheet.show(context),
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.bgLight,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border:
+                                      Border.all(color: AppColors.cardBorder),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.warning_amber_rounded,
+                                        color: Color(0xFFEF4444), size: 18),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'আজকের নামাজের নিষিদ্ধ সময়সূচি দেখুন',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textDark,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(Icons.chevron_right_rounded,
+                                        color: AppColors.textSubdued, size: 18),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Sunrise Notice Banner
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFFBEB),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                    color: const Color(0xFFFDE68A)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Row(
+                                    children: [
+                                      Icon(Icons.wb_sunny_outlined,
+                                          color: Color(0xFFD97706), size: 18),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'সূর্যোদয় (Sunrise / ফজর শেষ)',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF92400E),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    DateFormat('hh:mm a')
+                                        .format(dayPrayers.sunrise),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFB45309),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // 5 Prayer Cards
                             for (int i = 0;
                                 i < dayPrayers.scheduleItems.length;
                                 i++) ...[
@@ -214,4 +382,3 @@ class PrayerTimesScreen extends ConsumerWidget {
     );
   }
 }
-

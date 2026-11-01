@@ -48,3 +48,4 @@ final prayerTrackerProvider =
     StateNotifierProvider<PrayerTrackerNotifier, Map<PrayerType, bool>>((ref) {
   return PrayerTrackerNotifier();
 });
+

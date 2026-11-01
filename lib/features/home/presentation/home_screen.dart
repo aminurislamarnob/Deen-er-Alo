@@ -8,6 +8,7 @@ import '../../../core/utils/bangla_numbers.dart';
 import '../../prayer_times/domain/prayer_model.dart';
 import '../../prayer_times/presentation/city_picker_sheet.dart';
 import '../../prayer_times/presentation/prayer_providers.dart';
+import '../../prayer_times/presentation/prohibited_times_sheet.dart';
 import '../data/hadith_repository.dart';
 import 'fasting_provider.dart';
 import 'prayer_tracker_provider.dart';
@@ -609,7 +610,7 @@ class HomeScreen extends ConsumerWidget {
       {'title': 'আল-কুরআন', 'sub': 'Holy Quran', 'icon': Icons.menu_book_rounded, 'color': const Color(0xFF8B5CF6), 'route': '/quran'},
       {'title': 'দুআ ও যিক্‌র', 'sub': 'Duas & Adhkar', 'icon': Icons.auto_stories_rounded, 'color': const Color(0xFFF59E0B), 'route': '/dua'},
       {'title': 'আল্লাহর ৯৯ নাম', 'sub': '99 Names', 'icon': Icons.stars_rounded, 'color': const Color(0xFFEC4899), 'route': '/settings'},
-      {'title': 'নামাজ নিষিদ্ধ সময়', 'sub': 'Prohibited Times', 'icon': Icons.warning_amber_rounded, 'color': const Color(0xFFEF4444), 'route': '/prayers'},
+      {'title': 'নামাজ নিষিদ্ধ সময়', 'sub': 'Prohibited Times', 'icon': Icons.warning_amber_rounded, 'color': const Color(0xFFEF4444), 'route': 'prohibited'},
     ];
 
     return GridView.builder(
@@ -627,7 +628,13 @@ class HomeScreen extends ConsumerWidget {
         final iconColor = t['color'] as Color;
 
         return InkWell(
-          onTap: () => context.go(t['route'] as String),
+          onTap: () {
+            if (t['route'] == 'prohibited') {
+              ProhibitedTimesSheet.show(context);
+            } else {
+              context.go(t['route'] as String);
+            }
+          },
           borderRadius: BorderRadius.circular(16),
           child: Container(
             padding: const EdgeInsets.all(10),

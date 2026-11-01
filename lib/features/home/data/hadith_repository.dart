@@ -52,3 +52,4 @@ final dailyHadithProvider = FutureProvider<HadithItem?>((ref) async {
   final repo = ref.watch(hadithRepositoryProvider);
   return repo.getDailyHadith();
 });
+
