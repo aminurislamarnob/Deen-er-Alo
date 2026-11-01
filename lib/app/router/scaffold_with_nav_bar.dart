@@ -39,18 +39,12 @@ class ScaffoldWithNavBar extends StatelessWidget {
                 ),
                 _buildNavItem(
                   2,
-                  LucideIcons.bookOpen,
-                  LucideIcons.bookOpen,
-                  'Quran',
-                ),
-                _buildNavItem(
-                  3,
                   LucideIcons.sparkles,
                   LucideIcons.sparkles,
                   'Dua',
                 ),
                 _buildNavItem(
-                  4,
+                  3,
                   LucideIcons.layoutGrid,
                   LucideIcons.layoutGrid,
                   'More',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hijri/hijri_calendar.dart';
@@ -680,10 +681,10 @@ class HomeScreen extends ConsumerWidget {
       },
       {
         'title': 'আল-কুরআন',
-        'sub': 'Holy Quran',
+        'sub': 'শীঘ্রই আসছে',
         'icon': LucideIcons.bookOpen,
         'color': const Color(0xFF8B5CF6),
-        'route': '/quran',
+        'route': 'quran_coming_soon',
       },
       {
         'title': 'দুআ ও যিক্‌র',
@@ -728,6 +729,34 @@ class HomeScreen extends ConsumerWidget {
             final route = t['route'] as String;
             if (route == 'prohibited') {
               ProhibitedTimesSheet.show(context);
+            } else if (route == 'quran_coming_soon') {
+              HapticFeedback.selectionClick();
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Row(
+                    children: [
+                      Icon(LucideIcons.info, color: Colors.white, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'আল-কুরআন ফিচারটি পরবর্তী আপডেটে আসবে ইনশাআল্লাহ',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: AppColors.primary,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
             } else if (route == '/qibla' ||
                 route == '/tasbeeh' ||
                 route == '/names') {
