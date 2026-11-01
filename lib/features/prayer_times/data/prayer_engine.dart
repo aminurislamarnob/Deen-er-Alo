@@ -1,4 +1,5 @@
 import 'package:adhan/adhan.dart';
+import '../../../core/utils/city_clock.dart';
 import '../domain/city_model.dart';
 import '../domain/prayer_model.dart';
 import 'ifa_timetable_service.dart';
@@ -9,126 +10,61 @@ class PrayerEngine {
   PrayerEngine({IFATimetableService? ifaService})
       : _ifaService = ifaService ?? IFATimetableService();
 
+  /// Maximum plausible deviation between an IFA timetable entry and the
+  /// astronomical calculation. Entries outside this window are treated as
+  /// data errors and the calculated time is used instead.
+  static const Duration ifaTolerance = Duration(minutes: 20);
+
+  /// Calculates the prayer schedule for [date] (a date in the city's local
+  /// calendar). All returned times are wall-clock times in the city's time
+  /// zone (see [CityClock]).
   Future<DayPrayerTimes> calculateDayPrayers({
     required CityModel city,
     required DateTime date,
     DateTime? now,
   }) async {
-    final effectiveNow = now ?? DateTime.now();
-    final coordinates = Coordinates(city.latitude, city.longitude);
-    final params = CalculationMethod.karachi.getParameters();
-    params.madhab = Madhab.hanafi;
+    final zone = city.effectiveTimeZone;
+    final day = CityClock.dateOnly(date);
+    final effectiveNow = now ?? CityClock.now(zone);
 
-    final dateComponents = DateComponents(date.year, date.month, date.day);
-    final adhanTimes = PrayerTimes(coordinates, dateComponents, params);
+    final today = _adhanDay(city, day);
+    final nextDay = DateTime(day.year, day.month, day.day + 1);
+    final tomorrow = _adhanDay(city, nextDay);
 
-    DateTime fajr = adhanTimes.fajr;
-    DateTime sunrise = adhanTimes.sunrise;
-    DateTime dhuhr = adhanTimes.dhuhr;
-    DateTime asr = adhanTimes.asr;
-    DateTime maghrib = adhanTimes.maghrib;
-    DateTime isha = adhanTimes.isha;
+    DateTime fajr = today.fajr;
+    final DateTime sunrise = today.sunrise;
+    final DateTime dhuhr = today.dhuhr;
+    final DateTime asr = today.asr;
+    DateTime maghrib = today.maghrib;
+    final DateTime isha = today.isha;
+    DateTime nextFajr = tomorrow.fajr;
 
     DateTime? sehriEnd;
     DateTime? iftarTime;
 
-    // Check Bangladesh Islamic Foundation (IFA) schedule override if applicable
-    if (city.isBangladeshDistrict ||
-        city.countryName.toLowerCase() == 'bangladesh') {
-      final ifaResult = await _ifaService.getSchedule(
-        districtId: city.id,
-        date: date,
-      );
-
-      if (ifaResult != null) {
-        sehriEnd = ifaResult.sehriEnd;
-        fajr = ifaResult.fajrStart;
-        iftarTime = ifaResult.iftarTime;
-        maghrib = ifaResult.iftarTime;
+    // Bangladesh Islamic Foundation (IFA) timetable override. IFA times are
+    // Asia/Dhaka wall-clock times, which is the zone of every BD district.
+    if (_isBangladesh(city) && zone == 'Asia/Dhaka') {
+      final ifa = await _safeIfa(city.id, day);
+      if (ifa != null &&
+          _withinTolerance(ifa.fajrStart, fajr) &&
+          _withinTolerance(ifa.iftarTime, maghrib)) {
+        sehriEnd = ifa.sehriEnd;
+        fajr = ifa.fajrStart;
+        iftarTime = ifa.iftarTime;
+        maghrib = ifa.iftarTime;
+      }
+      final nextIfa = await _safeIfa(city.id, nextDay);
+      if (nextIfa != null && _withinTolerance(nextIfa.fajrStart, nextFajr)) {
+        nextFajr = nextIfa.fajrStart;
       }
     }
 
     sehriEnd ??= fajr.subtract(const Duration(minutes: 3));
     iftarTime ??= maghrib;
 
-    // Next day's fajr for Esha end time
-    final nextDayDate = date.add(const Duration(days: 1));
-    final nextDayComponents =
-        DateComponents(nextDayDate.year, nextDayDate.month, nextDayDate.day);
-    final nextDayAdhan = PrayerTimes(coordinates, nextDayComponents, params);
-    DateTime nextFajr = nextDayAdhan.fajr;
-
-    if (city.isBangladeshDistrict ||
-        city.countryName.toLowerCase() == 'bangladesh') {
-      final nextDayIfa = await _ifaService.getSchedule(
-        districtId: city.id,
-        date: nextDayDate,
-      );
-      if (nextDayIfa != null) {
-        nextFajr = nextDayIfa.fajrStart;
-      }
-    }
-
-    // Determine currently active prayer interval
-    final isSameDate = effectiveNow.year == date.year &&
-        effectiveNow.month == date.month &&
-        effectiveNow.day == date.day;
-
-    bool isCurrentFajr = isSameDate &&
-        effectiveNow.isAfter(fajr) &&
-        effectiveNow.isBefore(sunrise);
-    bool isCurrentDhuhr = isSameDate &&
-        effectiveNow.isAfter(dhuhr) &&
-        effectiveNow.isBefore(asr);
-    bool isCurrentAsr = isSameDate &&
-        effectiveNow.isAfter(asr) &&
-        effectiveNow.isBefore(maghrib);
-    bool isCurrentMaghrib = isSameDate &&
-        effectiveNow.isAfter(maghrib) &&
-        effectiveNow.isBefore(isha);
-    bool isCurrentIsha = isSameDate &&
-        (effectiveNow.isAfter(isha) || effectiveNow.isBefore(fajr));
-
-    final scheduleItems = [
-      PrayerScheduleItem(
-        type: PrayerType.fajr,
-        title: PrayerType.fajr.displayName,
-        startTime: fajr,
-        endTime: sunrise,
-        isCurrent: isCurrentFajr,
-      ),
-      PrayerScheduleItem(
-        type: PrayerType.dhuhr,
-        title: PrayerType.dhuhr.displayName,
-        startTime: dhuhr,
-        endTime: asr,
-        isCurrent: isCurrentDhuhr,
-      ),
-      PrayerScheduleItem(
-        type: PrayerType.asr,
-        title: PrayerType.asr.displayName,
-        startTime: asr,
-        endTime: maghrib,
-        isCurrent: isCurrentAsr,
-      ),
-      PrayerScheduleItem(
-        type: PrayerType.maghrib,
-        title: PrayerType.maghrib.displayName,
-        startTime: maghrib,
-        endTime: isha,
-        isCurrent: isCurrentMaghrib,
-      ),
-      PrayerScheduleItem(
-        type: PrayerType.isha,
-        title: PrayerType.isha.displayName,
-        startTime: isha,
-        endTime: nextFajr,
-        isCurrent: isCurrentIsha,
-      ),
-    ];
-
-    return DayPrayerTimes(
-      date: date,
+    final base = DayPrayerTimes(
+      date: day,
       cityName: city.name,
       fajr: fajr,
       sunrise: sunrise,
@@ -138,22 +74,128 @@ class PrayerEngine {
       isha: isha,
       sehriEnd: sehriEnd,
       iftar: iftarTime,
-      scheduleItems: scheduleItems,
+      scheduleItems: [
+        PrayerScheduleItem(
+          type: PrayerType.fajr,
+          title: PrayerType.fajr.displayName,
+          startTime: fajr,
+          endTime: sunrise,
+        ),
+        PrayerScheduleItem(
+          type: PrayerType.dhuhr,
+          title: PrayerType.dhuhr.displayName,
+          startTime: dhuhr,
+          endTime: asr,
+        ),
+        PrayerScheduleItem(
+          type: PrayerType.asr,
+          title: PrayerType.asr.displayName,
+          startTime: asr,
+          endTime: maghrib,
+        ),
+        PrayerScheduleItem(
+          type: PrayerType.maghrib,
+          title: PrayerType.maghrib.displayName,
+          startTime: maghrib,
+          endTime: isha,
+        ),
+        PrayerScheduleItem(
+          type: PrayerType.isha,
+          title: PrayerType.isha.displayName,
+          startTime: isha,
+          endTime: nextFajr,
+        ),
+      ],
+    );
+    return markCurrent(base, effectiveNow);
+  }
+
+  /// Returns a copy of [dayPrayers] whose `isCurrent` / `isNext` flags reflect
+  /// [now] (a wall-clock time in the city's zone). Between midnight and Fajr
+  /// the previous night's Isha is considered current.
+  DayPrayerTimes markCurrent(DayPrayerTimes dayPrayers, DateTime now) {
+    final isSameDate = now.year == dayPrayers.date.year &&
+        now.month == dayPrayers.date.month &&
+        now.day == dayPrayers.date.day;
+
+    PrayerType? current;
+    if (isSameDate) {
+      if (now.isBefore(dayPrayers.fajr)) {
+        current = PrayerType.isha;
+      } else {
+        for (final item in dayPrayers.scheduleItems) {
+          if (!now.isBefore(item.startTime) && now.isBefore(item.endTime)) {
+            current = item.type;
+            break;
+          }
+        }
+      }
+    }
+
+    PrayerType? next;
+    if (isSameDate) {
+      for (final item in dayPrayers.scheduleItems) {
+        if (now.isBefore(item.startTime)) {
+          next = item.type;
+          break;
+        }
+      }
+    }
+
+    return DayPrayerTimes(
+      date: dayPrayers.date,
+      cityName: dayPrayers.cityName,
+      fajr: dayPrayers.fajr,
+      sunrise: dayPrayers.sunrise,
+      dhuhr: dayPrayers.dhuhr,
+      asr: dayPrayers.asr,
+      maghrib: dayPrayers.maghrib,
+      isha: dayPrayers.isha,
+      sehriEnd: dayPrayers.sehriEnd,
+      iftar: dayPrayers.iftar,
+      scheduleItems: [
+        for (final item in dayPrayers.scheduleItems)
+          item.copyWith(
+            isCurrent: item.type == current,
+            isNext: item.type == next,
+          ),
+      ],
     );
   }
 
+  /// Countdown to the next event for the Home dashboard. [now] is a wall-clock
+  /// time in the city's zone and [dayPrayers] is *today's* schedule.
+  ///
+  /// During Fajr the countdown targets sunrise (end of Fajr); after Isha it
+  /// targets tomorrow's Fajr using the real next-day time.
   NextPrayerCountdown calculateCountdown({
     required DayPrayerTimes dayPrayers,
     required DateTime now,
   }) {
-    DateTime targetTime;
-    PrayerType nextPrayer;
-    DateTime prevTime;
+    final nextFajr = dayPrayers.scheduleItems
+        .firstWhere((i) => i.type == PrayerType.isha)
+        .endTime;
+    // Previous night's Isha, approximated from today's Isha.
+    final prevIsha = DateTime(
+      dayPrayers.isha.year,
+      dayPrayers.isha.month,
+      dayPrayers.isha.day - 1,
+      dayPrayers.isha.hour,
+      dayPrayers.isha.minute,
+    );
+
+    late final PrayerType nextPrayer;
+    late final DateTime targetTime;
+    late final DateTime prevTime;
 
     if (now.isBefore(dayPrayers.fajr)) {
       nextPrayer = PrayerType.fajr;
       targetTime = dayPrayers.fajr;
-      prevTime = dayPrayers.fajr.subtract(const Duration(hours: 6));
+      prevTime = prevIsha;
+    } else if (now.isBefore(dayPrayers.sunrise)) {
+      nextPrayer = PrayerType.sunrise;
+      targetTime = dayPrayers.sunrise;
+      prevTime = dayPrayers.fajr;
     } else if (now.isBefore(dayPrayers.dhuhr)) {
       nextPrayer = PrayerType.dhuhr;
       targetTime = dayPrayers.dhuhr;
@@ -172,7 +214,7 @@ class PrayerEngine {
       prevTime = dayPrayers.maghrib;
     } else {
       nextPrayer = PrayerType.fajr;
-      targetTime = dayPrayers.fajr.add(const Duration(days: 1));
+      targetTime = nextFajr;
       prevTime = dayPrayers.isha;
     }
 
@@ -189,6 +231,47 @@ class PrayerEngine {
       remaining: remaining.isNegative ? Duration.zero : remaining,
       progress: progress,
     );
+  }
+
+  _DayTimes _adhanDay(CityModel city, DateTime day) {
+    final params = CalculationMethod.karachi.getParameters();
+    params.madhab = Madhab.hanafi;
+    final zone = city.effectiveTimeZone;
+    final components = DateComponents(day.year, day.month, day.day);
+    final coordinates = Coordinates(city.latitude, city.longitude);
+
+    if (!CityClock.isValidZone(zone)) {
+      // Unknown zone: device-local times (legacy behaviour).
+      return _DayTimes.from(
+        PrayerTimes(coordinates, components, params),
+        (t) => t.toLocal(),
+      );
+    }
+    // Offset at local noon handles DST days correctly enough for prayers.
+    final noon = CityClock.toInstant(
+      DateTime(day.year, day.month, day.day, 12),
+      zone,
+    );
+    final offset = CityClock.offsetAt(zone, noon);
+    return _DayTimes.from(
+      PrayerTimes(coordinates, components, params, utcOffset: offset),
+      CityClock.stripUtcFlag,
+    );
+  }
+
+  bool _isBangladesh(CityModel city) =>
+      city.isBangladeshDistrict ||
+      city.countryName.toLowerCase() == 'bangladesh';
+
+  bool _withinTolerance(DateTime a, DateTime b) =>
+      a.difference(b).abs() <= ifaTolerance;
+
+  Future<IFAScheduleResult?> _safeIfa(int districtId, DateTime date) async {
+    try {
+      return await _ifaService.getSchedule(districtId: districtId, date: date);
+    } catch (_) {
+      return null; // Fall back to astronomical times.
+    }
   }
 
   List<ProhibitedTimeRange> getProhibitedTimes(DayPrayerTimes dayPrayers) {
@@ -227,4 +310,28 @@ class PrayerEngine {
     }
     return null;
   }
+}
+
+/// One day of astronomical times as plain wall-clock [DateTime]s.
+class _DayTimes {
+  final DateTime fajr, sunrise, dhuhr, asr, maghrib, isha;
+
+  const _DayTimes(
+    this.fajr,
+    this.sunrise,
+    this.dhuhr,
+    this.asr,
+    this.maghrib,
+    this.isha,
+  );
+
+  factory _DayTimes.from(PrayerTimes p, DateTime Function(DateTime) map) =>
+      _DayTimes(
+        map(p.fajr),
+        map(p.sunrise),
+        map(p.dhuhr),
+        map(p.asr),
+        map(p.maghrib),
+        map(p.isha),
+      );
 }

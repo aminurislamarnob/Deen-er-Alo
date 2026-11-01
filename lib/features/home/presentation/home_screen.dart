@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
-import '../../../core/services/widget_sync_service.dart';
 import '../../../core/utils/bangla_numbers.dart';
+import '../../calendar/presentation/hijri_providers.dart';
 import '../../prayer_times/domain/prayer_model.dart';
 import '../../prayer_times/presentation/city_picker_sheet.dart';
 import '../../prayer_times/presentation/prayer_providers.dart';
+import '../../settings/presentation/notification_settings_provider.dart';
 import '../../prayer_times/presentation/prohibited_times_sheet.dart';
 import '../data/hadith_repository.dart';
 import 'fasting_provider.dart';
@@ -23,39 +23,17 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCityAsync = ref.watch(selectedCityProvider);
-    final dayPrayersAsync = ref.watch(dayPrayerTimesProvider);
-    final countdown = ref.watch(countdownProvider);
-    final clock = ref.watch(clockStreamProvider);
+    // Today's schedule (not the date browsed on the Prayers tab). Per-second
+    // values (clock, countdown, current waqt) are watched in small Consumer
+    // leaves below so the whole dashboard doesn't rebuild every second.
+    final dayPrayersAsync = ref.watch(todayPrayerTimesProvider);
+    final today = ref.watch(todayDateProvider);
+    final hijriNow = ref.watch(hijriTodayProvider);
     final fasting = ref.watch(fastingProvider);
     final prayerTracker = ref.watch(prayerTrackerProvider);
     final dailyHadithAsync = ref.watch(dailyHadithProvider);
 
-    // Sync Home Screen Widgets whenever prayer times or city is updated
-    ref.listen(dayPrayerTimesProvider, (prev, next) {
-      final prayers = next.valueOrNull;
-      final currentCity = ref.read(selectedCityProvider).valueOrNull;
-      if (prayers != null && currentCity != null) {
-        final currentCountdown = ref.read(countdownProvider);
-        final hijri = HijriCalendar.now();
-        final hMonth =
-            BanglaUtils.hijriMonthBengali[hijri.hMonth] ?? hijri.longMonthName;
-        final hDate =
-            '${BanglaUtils.toBanglaDigits(hijri.hDay)} $hMonth, ${BanglaUtils.toBanglaDigits(hijri.hYear)} হিজরি';
 
-        WidgetSyncService.instance.syncAllWidgets(
-          city: currentCity,
-          dayPrayers: prayers,
-          hijriDateString: hDate,
-          nextWaqtName: currentCountdown?.prayerName,
-          nextWaqtTime: currentCountdown?.targetTime,
-          remainingDuration: currentCountdown?.remaining,
-        );
-      }
-    });
-
-    final now = clock.value ?? DateTime.now();
-    final timeFormat = DateFormat('hh:mm');
-    final periodFormat = DateFormat('a');
     final gregorianDateFormat = DateFormat('EEEE, d MMM yyyy');
 
     final city = selectedCityAsync.value;
@@ -63,8 +41,7 @@ class HomeScreen extends ConsumerWidget {
         ? '${city.name}, ${city.countryName}'
         : 'Dhaka, Bangladesh';
 
-    // Hijri date calculation
-    final hijriNow = HijriCalendar.now();
+    // Hijri date (moon-sighting offset applied, same as calendar & widgets)
     final hijriMonthBn =
         BanglaUtils.hijriMonthBengali[hijriNow.hMonth] ??
         hijriNow.longMonthName;
@@ -222,7 +199,7 @@ class HomeScreen extends ConsumerWidget {
                                       ),
                                     ),
                                     Text(
-                                      gregorianDateFormat.format(now),
+                                      gregorianDateFormat.format(today),
                                       style: const TextStyle(
                                         color: AppColors.textLightSubdued,
                                         fontSize: 10,
@@ -248,13 +225,19 @@ class HomeScreen extends ConsumerWidget {
                         const SizedBox(height: 16),
 
                         // Hero Prayer Card (Current & Next Prayer with Countdown)
-                        _buildHeroPrayerCard(
-                          context: context,
-                          dayPrayersAsync: dayPrayersAsync,
-                          countdown: countdown,
-                          currentTime: timeFormat.format(now),
-                          period: periodFormat.format(now),
-                          location: locationLabel,
+                        Consumer(
+                          builder: (context, ref, _) {
+                            final now = ref.watch(cityNowProvider);
+                            final countdown = ref.watch(countdownProvider);
+                            return _buildHeroPrayerCard(
+                              context: context,
+                              dayPrayersAsync: dayPrayersAsync,
+                              countdown: countdown,
+                              currentTime: DateFormat('hh:mm').format(now),
+                              period: DateFormat('a').format(now),
+                              location: locationLabel,
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -280,7 +263,16 @@ class HomeScreen extends ConsumerWidget {
                       onSeeAll: () => context.go('/prayers'),
                     ),
                     const SizedBox(height: 10),
-                    _buildTodayPrayerTimesCarousel(ref, dayPrayersAsync),
+                    Consumer(
+                      builder: (context, ref, _) =>
+                          _buildTodayPrayerTimesCarousel(
+                        context,
+                        ref,
+                        dayPrayersAsync,
+                        currentType: ref.watch(currentPrayerTypeProvider),
+                        alarms: ref.watch(prayerAlarmProvider),
+                      ),
+                    ),
 
                     const SizedBox(height: 22),
 
@@ -446,6 +438,8 @@ class HomeScreen extends ConsumerWidget {
                     const SizedBox(height: 2),
                     Text(
                       location,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: AppColors.textLightSubdued,
                         fontSize: 11,
@@ -472,7 +466,9 @@ class HomeScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        'পরবর্তী: ${countdown?.prayerName ?? "নামাজ"}',
+                        countdown?.nextPrayer == PrayerType.sunrise
+                            ? 'ফজরের শেষ সময়'
+                            : 'পরবর্তী: ${countdown?.nextPrayer.bengaliName ?? "নামাজ"}',
                         style: const TextStyle(
                           color: AppColors.goldLight,
                           fontSize: 12,
@@ -482,7 +478,7 @@ class HomeScreen extends ConsumerWidget {
                       const SizedBox(height: 2),
                       Text(
                         countdown != null
-                            ? '${countdown.remaining.inHours}ঘণ্টা ${countdown.remaining.inMinutes.remainder(60)}মিনিট বাকি'
+                            ? _formatRemaining(countdown.remaining)
                             : 'হিসাব হচ্ছে...',
                         style: const TextStyle(
                           color: Colors.white,
@@ -575,9 +571,14 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _buildTodayPrayerTimesCarousel(
+    BuildContext context,
     WidgetRef ref,
-    AsyncValue<DayPrayerTimes> dayPrayersAsync,
-  ) {
+    AsyncValue<DayPrayerTimes> dayPrayersAsync, {
+    required PrayerType? currentType,
+    required Map<PrayerType, bool> alarms,
+  }) {
+    // Grow the fixed-size tiles with the user's text scale (capped).
+    final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6);
     return dayPrayersAsync.when(
       loading: () =>
           const Center(child: CircularProgressIndicator(color: AppColors.gold)),
@@ -588,7 +589,7 @@ class HomeScreen extends ConsumerWidget {
       data: (dayPrayers) {
         final timeFormat = DateFormat('hh:mm a');
         return SizedBox(
-          height: 98,
+          height: 98 * scale,
           child: ListView.separated(
             padding: EdgeInsets.zero,
             scrollDirection: Axis.horizontal,
@@ -596,13 +597,15 @@ class HomeScreen extends ConsumerWidget {
             itemCount: dayPrayers.scheduleItems.length,
             separatorBuilder: (_, __) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
-              final item = dayPrayers.scheduleItems[index];
+              final scheduled = dayPrayers.scheduleItems[index];
+              final item = scheduled.copyWith(
+                isCurrent: scheduled.type == currentType,
+              );
               final startStr = timeFormat.format(item.startTime);
-              final alarms = ref.watch(prayerAlarmProvider);
               final isAlarm = alarms[item.type] ?? false;
 
               return Container(
-                width: 110,
+                width: 110 * scale,
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: item.isCurrent
@@ -635,20 +638,33 @@ class HomeScreen extends ConsumerWidget {
                           color: const Color(0xFFEA580C),
                           size: 18,
                         ),
-                        InkWell(
-                          onTap: () {
-                            ref
-                                .read(prayerAlarmProvider.notifier)
-                                .toggleAlarm(item.type);
-                          },
-                          child: Icon(
-                            isAlarm
-                                ? LucideIcons.volume2
-                                : LucideIcons.volumeOff,
-                            color: isAlarm
-                                ? AppColors.activeGreen
-                                : AppColors.inactiveMuted,
-                            size: 16,
+                        SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            // Visual stays compact; hit area meets 48dp.
+                            style: IconButton.styleFrom(
+                              tapTargetSize: MaterialTapTargetSize.padded,
+                            ),
+                            tooltip: isAlarm
+                                ? '${item.type.bengaliName} অ্যালার্ম বন্ধ করুন'
+                                : '${item.type.bengaliName} অ্যালার্ম চালু করুন',
+                            onPressed: () {
+                              HapticFeedback.selectionClick();
+                              ref
+                                  .read(prayerAlarmProvider.notifier)
+                                  .toggleAlarm(item.type);
+                            },
+                            icon: Icon(
+                              isAlarm
+                                  ? LucideIcons.volume2
+                                  : LucideIcons.volumeOff,
+                              color: isAlarm
+                                  ? AppColors.activeGreen
+                                  : AppColors.inactiveMuted,
+                              size: 16,
+                            ),
                           ),
                         ),
                       ],
@@ -1300,5 +1316,16 @@ class HomeScreen extends ConsumerWidget {
         );
       },
     );
+  }
+
+  /// "২ ঘণ্টা ১৫ মিনিট বাকি" — Bangla digits, spaced units.
+  static String _formatRemaining(Duration d) {
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    if (h == 0 && m == 0) {
+      return '${BanglaUtils.toBanglaDigits(d.inSeconds.remainder(60))} সেকেন্ড বাকি';
+    }
+    final hours = h > 0 ? '${BanglaUtils.toBanglaDigits(h)} ঘণ্টা ' : '';
+    return '$hours${BanglaUtils.toBanglaDigits(m)} মিনিট বাকি';
   }
 }

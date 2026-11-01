@@ -1,6 +1,15 @@
 import 'package:geolocator/geolocator.dart';
 
+/// Why the last location lookup failed (null = success).
+enum LocationFailure { serviceDisabled, denied, deniedForever, unavailable }
+
 class LocationService {
+  LocationFailure? lastFailure;
+
+  Future<bool> openAppSettings() => Geolocator.openAppSettings();
+
+  Future<bool> openLocationSettings() => Geolocator.openLocationSettings();
+
   Future<bool> isLocationServiceEnabled() async {
     return await Geolocator.isLocationServiceEnabled();
   }
@@ -14,8 +23,10 @@ class LocationService {
   }
 
   Future<Position?> getCurrentPosition() async {
+    lastFailure = null;
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
+      lastFailure = LocationFailure.serviceDisabled;
       return null;
     }
 
@@ -23,11 +34,13 @@ class LocationService {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
+        lastFailure = LocationFailure.denied;
         return null;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
+      lastFailure = LocationFailure.deniedForever;
       return null;
     }
 
@@ -39,7 +52,9 @@ class LocationService {
         ),
       );
     } catch (_) {
-      return await Geolocator.getLastKnownPosition();
+      final last = await Geolocator.getLastKnownPosition();
+      if (last == null) lastFailure = LocationFailure.unavailable;
+      return last;
     }
   }
 }

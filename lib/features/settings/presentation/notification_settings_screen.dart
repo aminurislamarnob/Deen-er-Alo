@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/system_settings_service.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../domain/notification_settings.dart';
 import 'notification_settings_provider.dart';
@@ -41,7 +42,9 @@ class NotificationSettingsScreen extends ConsumerWidget {
             icon: const Icon(LucideIcons.bellRing, color: AppColors.primary),
             tooltip: 'টেস্ট নোটিফিকেশন',
             onPressed: () async {
-              await NotificationService.instance.requestPermissions();
+              await NotificationService.instance
+                  .requestNotificationPermission();
+              ref.invalidate(alarmHealthProvider);
               await NotificationService.instance.showInstantNotification(
                 id: 9999,
                 title: 'দ্বীনের আলো (নোটিফিকেশন সক্রিয়)',
@@ -68,6 +71,8 @@ class NotificationSettingsScreen extends ConsumerWidget {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
         children: [
+          const _AlarmHealthBanner(),
+
           // Master Switch Card
           Container(
             padding: const EdgeInsets.all(18),
@@ -192,7 +197,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Voluntary Prayers (Sunnah)
-          _buildSectionHeader('নফল সালাতের স্মরণিকা'),
+          _buildSectionHeader('সূর্যোদয় ও নফল সালাতের স্মরণিকা'),
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -201,6 +206,14 @@ class NotificationSettingsScreen extends ConsumerWidget {
             ),
             child: Column(
               children: [
+                _buildSwitchTile(
+                  icon: LucideIcons.sunrise,
+                  title: 'সূর্যোদয় (ফজরের শেষ সময়)',
+                  subtitle: 'সূর্যোদয়ের সময় নোটিফিকেশন',
+                  value: settings.sunriseReminder,
+                  onChanged: (val) => notifier.toggleSunrise(val),
+                ),
+                _buildDivider(),
                 _buildSwitchTile(
                   icon: LucideIcons.moon,
                   title: 'তাহাজ্জুদ সালাত',
@@ -235,7 +248,8 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 _buildSwitchTile(
                   icon: LucideIcons.utensils,
                   title: 'সাহরির সমাপ্তি সতর্কবার্তা',
-                  subtitle: 'সাহরি শেষ হওয়ার ১৫ মিনিট পূর্বে জরুরি অ্যালার্ম',
+                  subtitle:
+                      'সাহরি শেষ হওয়ার ১৫ মিনিট পূর্বে (রমজান ও ট্র্যাকারে রোজা রাখা দিনে)',
                   value: settings.sehriWarning,
                   onChanged: (val) => notifier.toggleSehriWarning(val),
                 ),
@@ -243,7 +257,8 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 _buildSwitchTile(
                   icon: LucideIcons.soup,
                   title: 'ইফতারের প্রস্তুতি স্মরণিকা',
-                  subtitle: 'মাগরিবের ১০ মিনিট পূর্বে দোয়া ও প্রস্তুতির বার্তা',
+                  subtitle:
+                      'ইফতারের ১০ মিনিট পূর্বে (রমজান ও ট্র্যাকারে রোজা রাখা দিনে)',
                   value: settings.iftarReminder,
                   onChanged: (val) => notifier.toggleIftarReminder(val),
                 ),
@@ -347,6 +362,20 @@ class NotificationSettingsScreen extends ConsumerWidget {
                           color: Color(0xFF1E40AF),
                           fontSize: 12,
                           height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          foregroundColor: const Color(0xFF1D4ED8),
+                        ),
+                        onPressed: () => SystemSettingsService.instance
+                            .openBatteryOptimizationSettings(),
+                        icon: const Icon(LucideIcons.batteryCharging, size: 16),
+                        label: const Text(
+                          'ব্যাটারি অপটিমাইজেশন সেটিংস খুলুন',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -585,6 +614,136 @@ class NotificationSettingsScreen extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Warns when the device would block or delay alarms, with one-tap fixes.
+/// Re-checks automatically when the user returns from system settings.
+class _AlarmHealthBanner extends ConsumerStatefulWidget {
+  const _AlarmHealthBanner();
+
+  @override
+  ConsumerState<_AlarmHealthBanner> createState() => _AlarmHealthBannerState();
+}
+
+class _AlarmHealthBannerState extends ConsumerState<_AlarmHealthBanner> {
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(
+      onResume: () => ref.invalidate(alarmHealthProvider),
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final health = ref.watch(alarmHealthProvider).valueOrNull;
+    if (health == null || health.allGood) return const SizedBox.shrink();
+
+    final issues = <({String text, String action, Future<void> Function() fix})>[
+      if (!health.notificationsAllowed)
+        (
+          text: 'নোটিফিকেশন অনুমতি বন্ধ — কোনো আযান/অ্যালার্ম দেখানো যাবে না।',
+          action: 'অনুমতি দিন',
+          fix: () async {
+            final granted = await NotificationService.instance
+                .requestNotificationPermission();
+            if (!granted) {
+              await SystemSettingsService.instance.openAppSettings();
+            }
+          },
+        ),
+      if (!health.exactAlarmsAllowed)
+        (
+          text:
+              'সঠিক সময়ের অ্যালার্ম অনুমতি বন্ধ — অ্যালার্ম কয়েক মিনিট দেরিতে বাজতে পারে।',
+          action: 'চালু করুন',
+          fix: () async {
+            await SystemSettingsService.instance.openExactAlarmSettings();
+          },
+        ),
+      if (!health.batteryUnrestricted)
+        (
+          text:
+              'ব্যাটারি অপটিমাইজেশন চালু — কিছু ফোনে অ্যালার্ম বন্ধ হয়ে যেতে পারে।',
+          action: 'সেটিংস',
+          fix: () async {
+            await SystemSettingsService.instance
+                .openBatteryOptimizationSettings();
+          },
+        ),
+    ];
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFED7AA)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                LucideIcons.triangleAlert,
+                color: Color(0xFFC2410C),
+                size: 18,
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'অ্যালার্ম ঠিকমতো কাজ নাও করতে পারে',
+                  style: TextStyle(
+                    color: Color(0xFF9A3412),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          for (final issue in issues)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      issue.text,
+                      style: const TextStyle(
+                        color: Color(0xFF9A3412),
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      await issue.fix();
+                      ref.invalidate(alarmHealthProvider);
+                    },
+                    child: Text(
+                      issue.action,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

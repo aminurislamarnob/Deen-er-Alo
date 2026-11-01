@@ -3,9 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app/app.dart';
 import 'core/services/notification_service.dart';
+import 'core/utils/city_clock.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Time zone database for city-local prayer times.
+  CityClock.ensureInitialized();
 
   // Initialize notification channels and timezone data
   try {

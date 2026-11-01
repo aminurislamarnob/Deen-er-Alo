@@ -14,7 +14,7 @@ extension PrayerTypeX on PrayerType {
   String get displayName {
     switch (this) {
       case PrayerType.fajr:
-        return 'Fazr';
+        return 'Fajr';
       case PrayerType.sunrise:
         return 'Sunrise';
       case PrayerType.dhuhr:
@@ -24,7 +24,7 @@ extension PrayerTypeX on PrayerType {
       case PrayerType.maghrib:
         return 'Maghrib';
       case PrayerType.isha:
-        return 'Esha';
+        return 'Isha';
     }
   }
 

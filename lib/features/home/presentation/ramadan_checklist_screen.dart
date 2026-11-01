@@ -7,13 +7,14 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../prayer_times/domain/prayer_model.dart';
 import '../../prayer_times/presentation/prayer_providers.dart';
+import '../../settings/presentation/notification_settings_provider.dart';
 
 class RamadanChecklistScreen extends ConsumerWidget {
   const RamadanChecklistScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dayPrayersAsync = ref.watch(dayPrayerTimesProvider);
+    final dayPrayersAsync = ref.watch(todayPrayerTimesProvider);
     final alarms = ref.watch(prayerAlarmProvider);
 
     return Scaffold(

@@ -6,6 +6,7 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../../app/theme/app_colors.dart';
 import 'city_picker_sheet.dart';
 import 'prayer_providers.dart';
+import '../../settings/presentation/notification_settings_provider.dart';
 import 'prohibited_times_sheet.dart';
 import 'widgets/arc_timer_widget.dart';
 import 'widgets/prayer_card_widget.dart';
@@ -17,12 +18,12 @@ class PrayerTimesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCityAsync = ref.watch(selectedCityProvider);
     final selectedDate = ref.watch(selectedDateProvider);
-    final dayPrayersAsync = ref.watch(dayPrayerTimesProvider);
+    // Browsed date's schedule with a live "current waqt" highlight.
+    final dayPrayersAsync = ref.watch(liveDayPrayerTimesProvider);
     final countdown = ref.watch(countdownProvider);
     final alarms = ref.watch(prayerAlarmProvider);
-    final clock = ref.watch(clockStreamProvider);
-
-    final now = clock.value ?? DateTime.now();
+    // City wall-clock time (correct even if the phone is in another zone).
+    final now = ref.watch(cityNowProvider);
     final timeFormat = DateFormat('hh:mm');
     final periodFormat = DateFormat('a');
     final currentTimeStr = timeFormat.format(now);
@@ -46,9 +47,13 @@ class PrayerTimesScreen extends ConsumerWidget {
           child: CircularProgressIndicator(color: AppColors.gold),
         ),
         error: (err, _) => Center(
-          child: Text(
-            'Error loading prayer times: $err',
-            style: const TextStyle(color: Colors.white),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              'নামাজের সময়সূচি লোড করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ),
         data: (dayPrayers) {
@@ -133,16 +138,28 @@ class PrayerTimesScreen extends ConsumerWidget {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   IconButton(
+                                    tooltip: 'আগের দিন',
                                     icon: const Icon(LucideIcons.chevronLeft,
                                         color: Colors.white, size: 20),
                                     onPressed: () {
+                                      // Field arithmetic: DST-safe.
                                       ref
                                           .read(selectedDateProvider.notifier)
-                                          .state = selectedDate.subtract(
-                                              const Duration(days: 1));
+                                          .state = DateTime(
+                                        selectedDate.year,
+                                        selectedDate.month,
+                                        selectedDate.day - 1,
+                                      );
                                     },
                                   ),
                                   InkWell(
+                                    // Long-press jumps back to today.
+                                    onLongPress: () {
+                                      ref
+                                          .read(selectedDateProvider.notifier)
+                                          .state = DateTime(
+                                              now.year, now.month, now.day);
+                                    },
                                     onTap: () async {
                                       final picked = await showDatePicker(
                                         context: context,
@@ -177,15 +194,35 @@ class PrayerTimesScreen extends ConsumerWidget {
                                     ),
                                   ),
                                   IconButton(
+                                    tooltip: 'পরের দিন',
                                     icon: const Icon(LucideIcons.chevronRight,
                                         color: Colors.white, size: 20),
                                     onPressed: () {
                                       ref
                                           .read(selectedDateProvider.notifier)
-                                          .state = selectedDate.add(
-                                              const Duration(days: 1));
+                                          .state = DateTime(
+                                        selectedDate.year,
+                                        selectedDate.month,
+                                        selectedDate.day + 1,
+                                      );
                                     },
                                   ),
+                                  if (!isToday)
+                                    TextButton(
+                                      onPressed: () {
+                                        ref
+                                            .read(selectedDateProvider.notifier)
+                                            .state = DateTime(
+                                                now.year, now.month, now.day);
+                                      },
+                                      child: const Text(
+                                        'আজ',
+                                        style: TextStyle(
+                                          color: AppColors.gold,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),

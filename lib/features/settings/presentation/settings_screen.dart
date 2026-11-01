@@ -141,7 +141,7 @@ class SettingsScreen extends ConsumerWidget {
               icon: LucideIcons.bookOpen,
               title: 'Dua & Adhkar (দুআ ও যিক্‌র)',
               subtitle: 'Search, save, and share duas',
-              onTap: () => context.push('/dua'),
+              onTap: () => context.go('/dua'), // Dua is a tab: switch, don't stack
             ),
             _buildSettingTile(
               icon: LucideIcons.calendarCheck,
