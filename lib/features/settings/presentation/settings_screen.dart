@@ -137,6 +137,12 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: 'With Bengali meaning & references',
               onTap: () => context.push('/names'),
             ),
+            _buildSettingTile(
+              icon: LucideIcons.bookOpen,
+              title: 'Dua & Adhkar (দুআ ও যিক্‌র)',
+              subtitle: 'Search, save, and share duas',
+              onTap: () => context.push('/dua'),
+            ),
 
             const SizedBox(height: 20),
 

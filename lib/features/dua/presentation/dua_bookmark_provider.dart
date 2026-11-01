@@ -7,26 +7,31 @@ class DuaBookmarkNotifier extends StateNotifier<Set<int>> {
   DuaBookmarkNotifier() : super(<int>{}) {
     _loadBookmarks();
   }
+  bool _hasLocalMutation = false;
+  Future<void> _saveQueue = Future<void>.value();
 
   Future<void> _loadBookmarks() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final list = prefs.getStringList(_keyBookmarks) ?? [];
-      state = list.map(int.parse).toSet();
+      if (!_hasLocalMutation) {
+        state = list.map(int.parse).toSet();
+      }
     } catch (_) {}
   }
 
-  Future<void> _saveBookmarks() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList(
-        _keyBookmarks,
-        state.map((id) => id.toString()).toList(),
-      );
-    } catch (_) {}
+  void _saveBookmarks() {
+    final snapshot = state.map((id) => id.toString()).toList();
+    _saveQueue = _saveQueue.then((_) async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setStringList(_keyBookmarks, snapshot);
+      } catch (_) {}
+    });
   }
 
   void toggleBookmark(int duaId) {
+    _hasLocalMutation = true;
     if (state.contains(duaId)) {
       state = {...state}..remove(duaId);
     } else {

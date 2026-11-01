@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../prayer_times/presentation/city_picker_sheet.dart';
 import '../../prayer_times/presentation/prayer_providers.dart';
+import '../domain/qibla_compass_model.dart';
 import 'qibla_providers.dart';
 import 'widgets/qibla_compass_dial.dart';
 
@@ -21,7 +23,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
 
   void _triggerHapticOnAlignment(bool isAligned) {
     if (isAligned && !_wasAligned) {
-      HapticFeedback.heavyImpact();
+      HapticFeedback.mediumImpact();
     }
     _wasAligned = isAligned;
   }
@@ -44,9 +46,13 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
     final currentHeading = qiblaState.hasSensor
         ? qiblaState.userHeading
         : _manualHeading;
-    final deltaAngle = ((currentHeading - qiblaState.qiblaBearing) % 360.0);
-    final normalizedDelta = deltaAngle > 180 ? deltaAngle - 360 : deltaAngle;
-    final isAligned = normalizedDelta.abs() <= 3.5;
+    final effectiveState = QiblaCompassModel(
+      userHeading: currentHeading,
+      qiblaBearing: qiblaState.qiblaBearing,
+      hasSensor: qiblaState.hasSensor,
+      accuracy: qiblaState.accuracy,
+    );
+    final isAligned = effectiveState.isAligned;
 
     _triggerHapticOnAlignment(isAligned);
 
@@ -55,7 +61,13 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
         ),
         title: const Text('ক্বিবলা কম্পাস (Qibla Compass)'),
         backgroundColor: Colors.transparent,
@@ -83,7 +95,10 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
               // Location & Bearing Pill Card
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(18),
@@ -200,7 +215,10 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: isAligned
                       ? AppColors.activeGreen.withValues(alpha: 0.12)
@@ -216,9 +234,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      isAligned
-                          ? LucideIcons.circleCheck
-                          : LucideIcons.compass,
+                      isAligned ? LucideIcons.circleCheck : LucideIcons.compass,
                       color: isAligned
                           ? AppColors.activeGreen
                           : AppColors.goldDark,
@@ -232,9 +248,9 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
                           Text(
                             isAligned
                                 ? 'আলহামদুলিল্লাহ! আপনি ক্বিবলামুখী আছেন'
-                                : normalizedDelta > 0
-                                    ? 'ফোনটি ${_toBnNumber(normalizedDelta.abs().toStringAsFixed(0))}° বামে ঘুরান'
-                                    : 'ফোনটি ${_toBnNumber(normalizedDelta.abs().toStringAsFixed(0))}° ডানে ঘুরান',
+                                : effectiveState.deltaAngle > 0
+                                ? 'ফোনটি ${_toBnNumber(effectiveState.deltaAngle.abs().toStringAsFixed(0))}° বামে ঘুরান'
+                                : 'ফোনটি ${_toBnNumber(effectiveState.deltaAngle.abs().toStringAsFixed(0))}° ডানে ঘুরান',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -295,7 +311,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'আপনার ডিভাইসে রিয়েল-টাইম ম্যাগনেটোমিটার সেন্সর পাওয়া যায়নি (এম্যুলেটর বা বাজেট ডিভাইস)। গাণিতিক হিসাব অনুযায়ী $cityName থেকে ক্বিবলার কোণ ${_toBnNumber(qiblaState.qiblaBearing.toStringAsFixed(1))}° পশ্চিম।',
+                        'আপনার ডিভাইসে রিয়েল-টাইম ম্যাগনেটোমিটার সেন্সর পাওয়া যায়নি (এম্যুলেটর বা বাজেট ডিভাইস)। গাণিতিক হিসাব অনুযায়ী $cityName থেকে ক্বিবলার কোণ ${_toBnNumber(qiblaState.qiblaBearing.toStringAsFixed(1))}°। সূর্যের অবস্থান বা ছায়ার দিক দেখে ফোনের উত্তর দিক মিলিয়ে তারপর নিচের কোণটি অনুসরণ করুন।',
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSubdued,

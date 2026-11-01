@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../domain/dhikr_item.dart';
@@ -105,7 +106,13 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
         ),
         title: const Text(
           'ডিজিটাল তাসবীহ',
@@ -113,6 +120,17 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
         ),
         backgroundColor: Colors.transparent,
         actions: [
+          IconButton(
+            icon: Icon(
+              tasbeeh.soundEnabled
+                  ? LucideIcons.volume2
+                  : LucideIcons.volumeOff,
+              color: tasbeeh.soundEnabled ? AppColors.gold : Colors.white60,
+              size: 20,
+            ),
+            tooltip: 'সাউন্ড অন/অফ',
+            onPressed: () => ref.read(tasbeehProvider.notifier).toggleSound(),
+          ),
           IconButton(
             icon: Icon(
               tasbeeh.hapticEnabled
@@ -192,9 +210,7 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.w600,
-                          color: isSelected
-                              ? Colors.white
-                              : AppColors.textDark,
+                          color: isSelected ? Colors.white : AppColors.textDark,
                         ),
                       ),
                     ),

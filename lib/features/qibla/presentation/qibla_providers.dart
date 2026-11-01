@@ -16,13 +16,33 @@ final qiblaBearingProvider = Provider<double>((ref) {
   return qibla.direction;
 });
 
-/// Stream provider for raw hardware compass events.
-final compassEventsProvider = StreamProvider.autoDispose<CompassEvent?>((ref) {
+/// Stream provider for compass events smoothed across the 0/360 degree seam.
+final compassEventsProvider = StreamProvider.autoDispose<double?>((ref) {
   final events = FlutterCompass.events;
   if (events == null) {
     return Stream.value(null);
   }
-  return events;
+
+  double? previousHeading;
+  return events.map((event) {
+    final heading = event.heading;
+    if (heading == null) {
+      previousHeading = null;
+      return null;
+    }
+
+    final normalized = (heading % 360.0 + 360.0) % 360.0;
+    if (previousHeading == null) {
+      previousHeading = normalized;
+    } else {
+      var delta = normalized - previousHeading!;
+      if (delta > 180) delta -= 360;
+      if (delta < -180) delta += 360;
+      previousHeading = (previousHeading! + delta * 0.2 + 360.0) % 360.0;
+    }
+
+    return previousHeading;
+  });
 });
 
 /// Combined state provider for the Qibla Compass.
@@ -32,7 +52,7 @@ final qiblaStateProvider = Provider.autoDispose<QiblaCompassModel>((ref) {
 
   return compassEventAsync.when(
     data: (event) {
-      if (event == null || event.heading == null) {
+      if (event == null) {
         // Device lacks hardware compass or simulator mode
         return QiblaCompassModel(
           userHeading: 0.0,
@@ -42,12 +62,10 @@ final qiblaStateProvider = Provider.autoDispose<QiblaCompassModel>((ref) {
       }
 
       // Smooth heading (positive 0 - 360)
-      final heading = (event.heading! % 360.0 + 360.0) % 360.0;
       return QiblaCompassModel(
-        userHeading: heading,
+        userHeading: event,
         qiblaBearing: qiblaBearing,
         hasSensor: true,
-        accuracy: event.accuracy,
       );
     },
     loading: () => QiblaCompassModel(

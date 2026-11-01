@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../app/theme/app_colors.dart';
 import 'dua_bookmark_provider.dart';
 
@@ -98,6 +100,11 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
     );
   }
 
+  Future<void> _shareDua(String title, String content) async {
+    final clean = _cleanContent(content);
+    await Share.share('$title\n\n$clean\n\nদ্বীনের আলো (Deener Alo)');
+  }
+
   List<Map<String, dynamic>> _getAllDuas() {
     final List<Map<String, dynamic>> all = [];
     for (final cat in _categories) {
@@ -118,6 +125,17 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
     return Scaffold(
       backgroundColor: AppColors.primaryDark,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+          tooltip: 'ফিরে যান',
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
         title: const Text('দুআ ও যিক্‌র (Duas & Adhkar)'),
         backgroundColor: Colors.transparent,
       ),
@@ -154,7 +172,9 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
                       child: TextField(
                         controller: _searchController,
                         onChanged: (val) {
-                          setState(() => _searchQuery = val.trim().toLowerCase());
+                          setState(
+                            () => _searchQuery = val.trim().toLowerCase(),
+                          );
                         },
                         decoration: InputDecoration(
                           hintText: 'দুআ বা যিক্‌র খুঁজুন...',
@@ -209,8 +229,8 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
                           final title = isBookmarkTab
                               ? 'সংরক্ষিত (${bookmarkedIds.length})'
                               : (_categories[index - 1]['categoryName']
-                                      as String? ??
-                                  '');
+                                        as String? ??
+                                    '');
 
                           return InkWell(
                             onTap: () {
@@ -343,10 +363,7 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
               const SizedBox(height: 4),
               const Text(
                 'পছন্দের দুআর বুকমার্ক আইকনে ট্যাপ করে সংরক্ষণ করুন।',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSubdued,
-                ),
+                style: TextStyle(fontSize: 12, color: AppColors.textSubdued),
               ),
             ],
           ),
@@ -460,6 +477,23 @@ class _DuaScreenState extends ConsumerState<DuaScreen> {
                             ),
                             label: const Text(
                               'কপি',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSubdued,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton.icon(
+                            onPressed: () => _shareDua(title, content),
+                            icon: const Icon(
+                              LucideIcons.share2,
+                              size: 14,
+                              color: AppColors.textSubdued,
+                            ),
+                            label: const Text(
+                              'শেয়ার',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,

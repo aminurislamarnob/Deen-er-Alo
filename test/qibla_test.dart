@@ -34,13 +34,20 @@ void main() {
       expect(modelAligned.deltaAngle, closeTo(0.5, 0.01));
       expect(modelAligned.isAligned, isTrue);
 
-      // Boundary aligned (+3.0 deg)
+      // Boundary aligned (+2.0 deg)
       final modelBoundary = QiblaCompassModel(
-        userHeading: 271.4,
+        userHeading: 270.4,
         qiblaBearing: qiblaBearing,
         hasSensor: true,
       );
       expect(modelBoundary.isAligned, isTrue);
+
+      final modelOutsideBoundary = QiblaCompassModel(
+        userHeading: 270.6,
+        qiblaBearing: qiblaBearing,
+        hasSensor: true,
+      );
+      expect(modelOutsideBoundary.isAligned, isFalse);
 
       // Not aligned (40 deg off)
       final modelUnaligned = QiblaCompassModel(

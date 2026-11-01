@@ -27,6 +27,8 @@ void main() {
         expect(name.meaningBn.isNotEmpty, isTrue);
         expect(name.meaningEn.isNotEmpty, isTrue);
         expect(name.description.isNotEmpty, isTrue);
+        expect(name.quranReference.isNotEmpty, isTrue);
+        expect(name.hadithReference.isNotEmpty, isTrue);
       }
     });
 

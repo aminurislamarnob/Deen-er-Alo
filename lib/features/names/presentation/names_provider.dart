@@ -23,3 +23,4 @@ final filteredNamesProvider = Provider<AsyncValue<List<AllahName>>>((ref) {
     return repo.searchNames(names, query);
   });
 });
+

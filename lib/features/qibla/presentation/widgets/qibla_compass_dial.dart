@@ -255,3 +255,4 @@ class _CompassFacePainter extends CustomPainter {
         oldDelegate.isAligned != isAligned;
   }
 }
+

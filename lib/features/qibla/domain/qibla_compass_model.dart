@@ -1,5 +1,7 @@
 /// Immutable model representing the Qibla Compass state.
 class QiblaCompassModel {
+  static const double alignmentToleranceDegrees = 2.0;
+
   /// The device's current heading in degrees [0, 360).
   final double userHeading;
 
@@ -28,8 +30,8 @@ class QiblaCompassModel {
     return diff;
   }
 
-  /// Whether the user is pointed directly at the Kaaba (within +/- 3.0 degrees).
-  bool get isAligned => deltaAngle.abs() <= 3.0;
+  /// Whether the user is pointed directly at the Kaaba (within +/- 2 degrees).
+  bool get isAligned => deltaAngle.abs() <= alignmentToleranceDegrees;
 
   /// Cardinal direction string in Bengali.
   String get cardinalDirectionBn {

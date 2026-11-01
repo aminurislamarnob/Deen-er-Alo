@@ -7,6 +7,8 @@ class AllahName {
   final String meaningEn;
   final String meaningBn;
   final String description;
+  final String quranReference;
+  final String hadithReference;
 
   const AllahName({
     required this.id,
@@ -16,6 +18,8 @@ class AllahName {
     required this.meaningEn,
     required this.meaningBn,
     required this.description,
+    this.quranReference = '',
+    this.hadithReference = '',
   });
 
   factory AllahName.fromJson(Map<String, dynamic> json) {
@@ -27,6 +31,8 @@ class AllahName {
       meaningEn: json['meaning_en'] as String? ?? '',
       meaningBn: json['meaning_bn'] as String? ?? '',
       description: json['description'] as String? ?? '',
+      quranReference: json['quran_reference'] as String? ?? '',
+      hadithReference: json['hadith_reference'] as String? ?? '',
     );
   }
 
@@ -39,6 +45,8 @@ class AllahName {
       'meaning_en': meaningEn,
       'meaning_bn': meaningBn,
       'description': description,
+      'quran_reference': quranReference,
+      'hadith_reference': hadithReference,
     };
   }
 }

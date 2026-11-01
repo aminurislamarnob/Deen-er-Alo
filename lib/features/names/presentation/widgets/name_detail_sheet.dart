@@ -19,7 +19,8 @@ class NameDetailSheet extends StatelessWidget {
   }
 
   void _copyToClipboard(BuildContext context) {
-    final text = '${name.nameArabic}\n'
+    final text =
+        '${name.nameArabic}\n'
         '${name.pronunciationBn} (${name.transliteration})\n'
         'অর্থ: ${name.meaningBn}\n'
         'তাৎপর্য: ${name.description}\n\n'
@@ -178,6 +179,11 @@ class NameDetailSheet extends StatelessWidget {
                 _buildDescriptionSection('তাৎপর্য ও ফজিলত', name.description),
                 const SizedBox(height: 20),
               ],
+              if (name.quranReference.isNotEmpty ||
+                  name.hadithReference.isNotEmpty) ...[
+                _buildReferencesSection(),
+                const SizedBox(height: 20),
+              ],
 
               // Close Button
               SizedBox(
@@ -242,6 +248,53 @@ class NameDetailSheet extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textSubdued,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReferencesSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.goldMuted,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'প্রাসঙ্গিক সূত্র',
+            style: TextStyle(
+              color: AppColors.goldDark,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if (name.quranReference.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              'কুরআন: ${name.quranReference}',
+              style: const TextStyle(
+                color: AppColors.textDark,
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+          ],
+          if (name.hadithReference.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              'হাদিস: ${name.hadithReference}',
+              style: const TextStyle(
+                color: AppColors.textDark,
+                fontSize: 12,
+                height: 1.4,
               ),
             ),
           ],

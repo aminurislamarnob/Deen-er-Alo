@@ -112,29 +112,32 @@ All bundled offline datasets reside in `assets/data/`:
 ### Phase 2: Islamic Content & Companion Tools
 - [x] **Qibla Compass with Sensors (`lib/features/qibla/`)**:
   - Real-time Great-Circle Kaaba bearing calculation via `adhan` (`277.6°` from Dhaka).
-  - Hardware magnetometer streaming via `flutter_compass`.
+  - Hardware magnetometer streaming via `flutter_compass` with 0°/360° seam low-pass smoothing filter.
   - Custom rotating compass dial with cardinal markers (`N, E, S, W`), Kaaba pointer beam, and center Kaaba medallion (`AppIcons.kaabaSvg`).
-  - Haptic feedback lock on alignment within $\pm 3.5^\circ$.
+  - Strict alignment tolerance ($\pm 2.0^\circ$) with tactile alignment lock (`mediumImpact`).
   - Comprehensive calibration instructions and manual bearing angle fallback for devices lacking magnetometers.
 - [x] **Digital Tasbeeh Counter (`lib/features/tasbeeh/`)**:
   - Horizontal preset Dhikr selector (Subhanallah, Alhamdulillah, Allahu Akbar, La ilaha illallah, Astaghfirullah, Salawat, Hawqala, Custom).
   - Tactile radial tap button with animated spring scale transition and circular progress ring.
   - Cycle targets (33, 99, 100, $\infty$) with auto cycle rollover and haptic celebration feedback (`heavyImpact`).
-  - Cumulative lifetime count persisted in `SharedPreferences`.
+  - Audio click sound support (`SystemSoundType.click`) with AppBar toggle button.
+  - Daily cycle auto-reset tracking based on calendar date.
+  - Cumulative lifetime count persisted in `SharedPreferences` with sequential save queue protection.
   - Reset confirmation dialog and haptic toggles.
 - [x] **99 Names of Allah (`lib/features/names/`)**:
-  - Complete 99 Names of Allah database in `assets/data/names_data.json` with Arabic calligraphy, Bengali pronunciation, English transliteration, Bengali & English meanings, and virtues.
+  - Complete 99 Names of Allah database in `assets/data/names_data.json` with Arabic calligraphy, Bengali pronunciation, English transliteration, Bengali & English meanings, virtues, and Quran & Hadith citations.
   - 2-column responsive grid with golden amber badges.
   - Real-time search across Arabic, English, and Bengali names or meanings.
-  - Modal bottom sheet (`NameDetailSheet`) showing full calligraphy, virtues, and one-tap copy button.
+  - Modal bottom sheet (`NameDetailSheet`) showing full calligraphy, virtues, Quran/Hadith references card, and one-tap copy button.
 - [x] **Enhanced Dua & Adhkar (`lib/features/dua/`)**:
   - HTML cleanup parser stripping tags and decoding entities for all 130 Duas.
   - Real-time search across all 130 Duas in all categories.
-  - Bookmarking system (`DuaBookmarkNotifier`) with persistent `SharedPreferences` storage.
+  - Bookmarking system (`DuaBookmarkNotifier`) with sequential save queue and persistent `SharedPreferences` storage.
   - Dedicated "সংরক্ষিত (Saved)" category tab.
-  - One-tap copy to clipboard with floating SnackBar notification.
+  - One-tap copy to clipboard with floating SnackBar notification and native system sharing via `share_plus`.
 - [x] **Navigation & Integration**:
   - Added `/qibla`, `/tasbeeh`, `/names` routes in `app_router.dart` with custom slide transitions.
+  - Robust back navigation fallback (`context.canPop() ? context.pop() : context.go('/home')`) across all feature app bars.
   - Linked all tools from Home dashboard tools grid and Settings & More screen.
 
 ---

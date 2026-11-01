@@ -17,6 +17,8 @@ void main() {
       expect(notifier.state.targetCount, equals(33));
       expect(notifier.state.completedCycles, equals(0));
       expect(notifier.state.hapticEnabled, isTrue);
+      expect(notifier.state.soundEnabled, isFalse);
+      expect(notifier.state.totalLifetimeCount, equals(0));
     });
 
     test('Increment counter rolls over upon reaching target', () {
