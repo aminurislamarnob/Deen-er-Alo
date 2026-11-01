@@ -15,7 +15,16 @@ class NamesScreen extends ConsumerStatefulWidget {
 }
 
 class _NamesScreenState extends ConsumerState<NamesScreen> {
-  final TextEditingController _searchController = TextEditingController();
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Seed from the provider so the box and the filtered list never disagree.
+    _searchController = TextEditingController(
+      text: ref.read(namesSearchQueryProvider),
+    );
+  }
 
   @override
   void dispose() {
@@ -81,6 +90,7 @@ class _NamesScreenState extends ConsumerState<NamesScreen> {
                     ),
                     suffixIcon: query.isNotEmpty
                         ? IconButton(
+                            tooltip: 'খোঁজা মুছুন',
                             icon: const Icon(
                               LucideIcons.x,
                               color: AppColors.textSubdued,
@@ -88,7 +98,9 @@ class _NamesScreenState extends ConsumerState<NamesScreen> {
                             ),
                             onPressed: () {
                               _searchController.clear();
-                              ref.read(namesSearchQueryProvider.notifier).state =
+                              ref
+                                      .read(namesSearchQueryProvider.notifier)
+                                      .state =
                                   '';
                             },
                           )
@@ -164,16 +176,20 @@ class _NamesScreenState extends ConsumerState<NamesScreen> {
                     );
                   }
 
+                  // Grow card height with the text scale so large fonts
+                  // don't overflow the fixed-ratio grid cells.
+                  final textScale = MediaQuery.textScalerOf(
+                    context,
+                  ).scale(1.0).clamp(1.0, 2.5);
                   return GridView.builder(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                     physics: const BouncingScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.88,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.88 / textScale,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
                     itemCount: names.length,
                     itemBuilder: (context, index) {
                       final item = names[index];
@@ -233,12 +249,16 @@ class _NamesScreenState extends ConsumerState<NamesScreen> {
                       ),
                     ),
                     alignment: Alignment.center,
-                    child: Text(
-                      idBn,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.goldDark,
+                    padding: const EdgeInsets.all(2),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        idBn,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.goldDark,
+                        ),
                       ),
                     ),
                   ),
@@ -249,25 +269,24 @@ class _NamesScreenState extends ConsumerState<NamesScreen> {
                   ),
                 ],
               ),
-              const Spacer(),
-
-              // Arabic text
-              Center(
-                child: Text(
-                  item.nameArabic,
-                  textDirection: TextDirection.rtl,
-                  maxLines: 1,
-                  overflow: TextDirection.rtl == TextDirection.rtl
-                      ? TextOverflow.ellipsis
-                      : null,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+              // Arabic text: takes the remaining space and scales down to fit.
+              Expanded(
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      item.nameArabic,
+                      textDirection: TextDirection.rtl,
+                      maxLines: 1,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
                   ),
                 ),
               ),
-              const Spacer(),
 
               // Bengali pronunciation
               Text(

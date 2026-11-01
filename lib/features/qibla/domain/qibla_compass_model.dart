@@ -14,11 +14,17 @@ class QiblaCompassModel {
   /// Accuracy/calibration level if provided by sensor.
   final double? accuracy;
 
+  /// True while the sensor stream hasn't produced its first heading yet.
+  /// [userHeading] is meaningless in this state and no guidance should be
+  /// shown.
+  final bool isLoading;
+
   const QiblaCompassModel({
     required this.userHeading,
     required this.qiblaBearing,
     required this.hasSensor,
     this.accuracy,
+    this.isLoading = false,
   });
 
   /// The difference in degrees between user's heading and Qibla direction.
@@ -31,7 +37,9 @@ class QiblaCompassModel {
   }
 
   /// Whether the user is pointed directly at the Kaaba (within +/- 2 degrees).
-  bool get isAligned => deltaAngle.abs() <= alignmentToleranceDegrees;
+  /// Always false while [isLoading].
+  bool get isAligned =>
+      !isLoading && deltaAngle.abs() <= alignmentToleranceDegrees;
 
   /// Cardinal direction string in Bengali.
   String get cardinalDirectionBn {

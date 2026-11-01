@@ -68,10 +68,12 @@ final qiblaStateProvider = Provider.autoDispose<QiblaCompassModel>((ref) {
         hasSensor: true,
       );
     },
+    // No real heading yet: report a loading state instead of a fake 0°.
     loading: () => QiblaCompassModel(
       userHeading: 0.0,
       qiblaBearing: qiblaBearing,
       hasSensor: true,
+      isLoading: true,
     ),
     error: (_, __) => QiblaCompassModel(
       userHeading: 0.0,

@@ -35,10 +35,19 @@ void main() {
       expect(notifier.state.lifetimeCount, equals(2));
       expect(notifier.state.completedCycles, equals(0));
 
-      // Reaching target (3)
+      // Reaching target (3): shows the completed count (3/3).
       notifier.increment();
-      expect(notifier.state.currentCount, equals(0)); // resets for next cycle
+      expect(notifier.state.currentCount, equals(3));
+      expect(notifier.state.isCycleComplete, isTrue);
+      expect(notifier.state.progress, equals(1.0));
       expect(notifier.state.lifetimeCount, equals(3));
+      expect(notifier.state.completedCycles, equals(1));
+
+      // Next tap starts the new cycle at 1.
+      notifier.increment();
+      expect(notifier.state.currentCount, equals(1));
+      expect(notifier.state.isCycleComplete, isFalse);
+      expect(notifier.state.lifetimeCount, equals(4));
       expect(notifier.state.completedCycles, equals(1));
     });
 

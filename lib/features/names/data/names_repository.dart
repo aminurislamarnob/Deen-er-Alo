@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import '../../dua/domain/search_normalizer.dart';
 import '../domain/allah_name_model.dart';
 
 class NamesRepository {
@@ -11,7 +12,9 @@ class NamesRepository {
     }
 
     try {
-      final jsonStr = await rootBundle.loadString('assets/data/names_data.json');
+      final jsonStr = await rootBundle.loadString(
+        'assets/data/names_data.json',
+      );
       final dynamic decoded = json.decode(jsonStr);
 
       final List<dynamic> list;
@@ -33,17 +36,28 @@ class NamesRepository {
   }
 
   List<AllahName> searchNames(List<AllahName> source, String query) {
-    final trimmed = query.trim().toLowerCase();
-    if (trimmed.isEmpty) return source;
+    final normalized = SearchNormalizer.normalize(query);
+    if (normalized.isEmpty) return source;
+
+    // Numeric search by id, accepting Bengali digits ("১২" -> 12).
+    final asciiDigits = SearchNormalizer.bengaliDigitsToAscii(normalized);
+    final numericId = RegExp(r'^\d+$').hasMatch(asciiDigits)
+        ? int.tryParse(asciiDigits)
+        : null;
+
+    // A purely numeric query is an id lookup.
+    if (numericId != null) {
+      return source.where((name) => name.id == numericId).toList();
+    }
 
     return source.where((name) {
-      return name.id.toString() == trimmed ||
-          name.transliteration.toLowerCase().contains(trimmed) ||
-          name.pronunciationBn.toLowerCase().contains(trimmed) ||
-          name.meaningBn.toLowerCase().contains(trimmed) ||
-          name.meaningEn.toLowerCase().contains(trimmed) ||
-          name.nameArabic.contains(trimmed);
+      return SearchNormalizer.matchesAny(normalized, [
+        name.transliteration,
+        name.pronunciationBn,
+        name.meaningBn,
+        name.meaningEn,
+        name.nameArabic,
+      ]);
     }).toList();
   }
 }
-
