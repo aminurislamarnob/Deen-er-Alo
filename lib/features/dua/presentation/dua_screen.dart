@@ -13,6 +13,7 @@ class DuaScreen extends StatefulWidget {
 class _DuaScreenState extends State<DuaScreen> {
   List<dynamic> _categories = [];
   bool _isLoading = true;
+  String? _errorMessage;
   int _selectedCategoryIndex = 0;
 
   @override
@@ -22,6 +23,10 @@ class _DuaScreenState extends State<DuaScreen> {
   }
 
   Future<void> _loadDuas() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
       final jsonStr = await rootBundle.loadString('assets/data/dua.json');
       final data = json.decode(jsonStr) as List<dynamic>;
@@ -30,7 +35,10 @@ class _DuaScreenState extends State<DuaScreen> {
         _isLoading = false;
       });
     } catch (_) {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'দুআ লোড করা যায়নি। আবার চেষ্টা করুন।';
+      });
     }
   }
 
@@ -42,14 +50,18 @@ class _DuaScreenState extends State<DuaScreen> {
         title: const Text('Dua & Zikr (দুআ ও যিক্‌র)'),
         backgroundColor: Colors.transparent,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
-          : Container(
-              decoration: const BoxDecoration(
-                color: AppColors.bgLight,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-              ),
-              child: Column(
+      body: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.bgLight,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              )
+            : _errorMessage != null
+            ? _buildErrorState()
+            : Column(
                 children: [
                   const SizedBox(height: 16),
                   // Categories Horizontal Bar
@@ -71,7 +83,9 @@ class _DuaScreenState extends State<DuaScreen> {
                           borderRadius: BorderRadius.circular(20),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? AppColors.primary
@@ -106,18 +120,21 @@ class _DuaScreenState extends State<DuaScreen> {
                   const SizedBox(height: 14),
 
                   // Dua List for Selected Category
-                  Expanded(
-                    child: _buildDuaList(),
-                  ),
+                  Expanded(child: _buildDuaList()),
                 ],
               ),
-            ),
+      ),
     );
   }
 
   Widget _buildDuaList() {
     if (_categories.isEmpty) {
-      return const Center(child: Text('No duas found'));
+      return const Center(
+        child: Text(
+          'এই বিভাগে কোনো দুআ পাওয়া যায়নি।',
+          style: TextStyle(color: AppColors.textSubdued),
+        ),
+      );
     }
 
     final selectedCat = _categories[_selectedCategoryIndex];
@@ -211,6 +228,39 @@ class _DuaScreenState extends State<DuaScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.cloud_off_outlined,
+              color: AppColors.textSubdued,
+              size: 40,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _errorMessage!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textDark,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: _loadDuas,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('আবার চেষ্টা করুন'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

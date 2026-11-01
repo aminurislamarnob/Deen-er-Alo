@@ -8,8 +8,9 @@ import '../../features/quran/presentation/quran_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import 'scaffold_with_nav_bar.dart';
 
-final GlobalKey<NavigatorState> _rootNavigatorKey =
-    GlobalKey<NavigatorState>(debugLabel: 'root');
+final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'root',
+);
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
@@ -24,9 +25,8 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/home',
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: HomeScreen(),
-              ),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: HomeScreen()),
             ),
           ],
         ),
@@ -34,9 +34,8 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/prayers',
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: PrayerTimesScreen(),
-              ),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: PrayerTimesScreen()),
             ),
           ],
         ),
@@ -44,9 +43,8 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/quran',
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: QuranScreen(),
-              ),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: QuranScreen()),
             ),
           ],
         ),
@@ -54,9 +52,8 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/dua',
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: DuaScreen(),
-              ),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: DuaScreen()),
             ),
           ],
         ),
@@ -64,9 +61,8 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/settings',
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: SettingsScreen(),
-              ),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: SettingsScreen()),
             ),
           ],
         ),
@@ -75,8 +71,23 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/checklist',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const RamadanChecklistScreen(),
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const RamadanChecklistScreen(),
+        transitionDuration: const Duration(milliseconds: 320),
+        reverseTransitionDuration: const Duration(milliseconds: 220),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final offsetAnimation = Tween<Offset>(
+            begin: const Offset(0, 0.035),
+            end: Offset.zero,
+          ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(animation);
+
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(position: offsetAnimation, child: child),
+          );
+        },
+      ),
     ),
   ],
 );
-

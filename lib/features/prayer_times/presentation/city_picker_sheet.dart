@@ -25,6 +25,7 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
   final TextEditingController _searchCtrl = TextEditingController();
   List<CityModel> _filteredCities = [];
   bool _isLoading = false;
+  bool _isDetectingLocation = false;
 
   @override
   void initState() {
@@ -66,7 +67,8 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
     final currentSelected = selectedCityAsync.value;
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
+      height: MediaQuery.of(context).size.height * 0.78,
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -112,31 +114,38 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: InkWell(
-              onTap: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                final navigator = Navigator.of(context);
-                final success = await ref
-                    .read(selectedCityProvider.notifier)
-                    .detectLocation();
-                if (mounted) {
-                  navigator.pop();
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        success
-                            ? 'Location updated successfully!'
-                            : 'Could not detect location. Using default.',
-                      ),
-                      backgroundColor:
-                          success ? AppColors.primary : AppColors.dangerRed,
-                    ),
-                  );
-                }
-              },
+              onTap: _isDetectingLocation
+                  ? null
+                  : () async {
+                      setState(() => _isDetectingLocation = true);
+                      final messenger = ScaffoldMessenger.of(context);
+                      final navigator = Navigator.of(context);
+                      final success = await ref
+                          .read(selectedCityProvider.notifier)
+                          .detectLocation();
+                      if (mounted) {
+                        setState(() => _isDetectingLocation = false);
+                        navigator.pop();
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              success
+                                  ? 'Location updated successfully!'
+                                  : 'Could not detect location. Using default.',
+                            ),
+                            backgroundColor: success
+                                ? AppColors.primary
+                                : AppColors.dangerRed,
+                          ),
+                        );
+                      }
+                    },
               borderRadius: BorderRadius.circular(14),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(14),
@@ -144,14 +153,23 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
                     color: AppColors.primary.withValues(alpha: 0.2),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(
-                      LucideIcons.locateFixed,
-                      color: AppColors.primary,
-                      size: 20,
-                    ),
-                    SizedBox(width: 12),
+                    _isDetectingLocation
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.primary,
+                            ),
+                          )
+                        : const Icon(
+                            LucideIcons.locateFixed,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Use Current GPS Location',
@@ -162,7 +180,7 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
                         ),
                       ),
                     ),
-                    Icon(
+                    const Icon(
                       LucideIcons.chevronRight,
                       color: AppColors.primary,
                       size: 20,
@@ -181,7 +199,10 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
               onChanged: _onSearch,
               decoration: InputDecoration(
                 hintText: 'Search city or district (e.g. Dhaka, Chittagong)...',
-                hintStyle: const TextStyle(fontSize: 13, color: AppColors.textSubdued),
+                hintStyle: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSubdued,
+                ),
                 prefixIcon: const Icon(LucideIcons.search, size: 18),
                 filled: true,
                 fillColor: AppColors.bgLight,
@@ -201,59 +222,59 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _filteredCities.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'No cities found',
-                          style: TextStyle(color: AppColors.textSubdued),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(8, 4, 8, 24),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: _filteredCities.length,
-                        itemBuilder: (context, index) {
-                          final city = _filteredCities[index];
-                          final isSelected = currentSelected?.id == city.id;
+                ? const Center(
+                    child: Text(
+                      'No cities found',
+                      style: TextStyle(color: AppColors.textSubdued),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 24),
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: _filteredCities.length,
+                    itemBuilder: (context, index) {
+                      final city = _filteredCities[index];
+                      final isSelected = currentSelected?.id == city.id;
 
-                          return ListTile(
-                            leading: Text(
-                              city.countryEmoji,
-                              style: const TextStyle(fontSize: 22),
-                            ),
-                            title: Text(
-                              city.name,
-                              style: TextStyle(
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.textDark,
-                              ),
-                            ),
-                            subtitle: Text(
-                              city.countryName,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSubdued,
-                              ),
-                            ),
-                            trailing: isSelected
-                                ? const Icon(
-                                    LucideIcons.circleCheck,
-                                    color: AppColors.activeGreen,
-                                    size: 20,
-                                  )
-                                : null,
-                            onTap: () {
-                              ref
-                                  .read(selectedCityProvider.notifier)
-                                  .selectCity(city);
-                              Navigator.pop(context);
-                            },
-                          );
+                      return ListTile(
+                        leading: Text(
+                          city.countryEmoji,
+                          style: const TextStyle(fontSize: 22),
+                        ),
+                        title: Text(
+                          city.name,
+                          style: TextStyle(
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.textDark,
+                          ),
+                        ),
+                        subtitle: Text(
+                          city.countryName,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSubdued,
+                          ),
+                        ),
+                        trailing: isSelected
+                            ? const Icon(
+                                LucideIcons.circleCheck,
+                                color: AppColors.activeGreen,
+                                size: 20,
+                              )
+                            : null,
+                        onTap: () {
+                          ref
+                              .read(selectedCityProvider.notifier)
+                              .selectCity(city);
+                          Navigator.pop(context);
                         },
-                      ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

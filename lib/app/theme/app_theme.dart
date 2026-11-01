@@ -38,9 +38,7 @@ class AppTheme {
           color: AppColors.textDark,
           fontWeight: FontWeight.w600,
         ),
-        bodyLarge: textTheme.bodyLarge?.copyWith(
-          color: AppColors.textDark,
-        ),
+        bodyLarge: textTheme.bodyLarge?.copyWith(color: AppColors.textDark),
         bodyMedium: textTheme.bodyMedium?.copyWith(
           color: AppColors.textSubdued,
         ),
@@ -67,6 +65,35 @@ class AppTheme {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.surfaceMuted,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.primaryDark,
+        contentTextStyle: GoogleFonts.plusJakartaSans(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -109,9 +136,7 @@ class AppTheme {
           color: AppColors.textLight,
           fontWeight: FontWeight.w700,
         ),
-        bodyLarge: textTheme.bodyLarge?.copyWith(
-          color: AppColors.textLight,
-        ),
+        bodyLarge: textTheme.bodyLarge?.copyWith(color: AppColors.textLight),
         bodyMedium: textTheme.bodyMedium?.copyWith(
           color: AppColors.textLightSubdued,
         ),
@@ -119,9 +144,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.cardDark,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

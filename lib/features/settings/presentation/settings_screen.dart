@@ -93,14 +93,26 @@ class SettingsScreen extends ConsumerWidget {
               icon: LucideIcons.landmark,
               title: 'Calculation Method',
               subtitle: 'University of Islamic Sciences, Karachi (Hanafi)',
-              onTap: () {},
+              onTap: () => _showInfo(
+                context,
+                'Calculation Method',
+                'Prayer times use the Karachi method unless an official Bangladesh Islamic Foundation timetable is available for the selected district.',
+              ),
             ),
             _buildSettingTile(
               icon: LucideIcons.badgeCheck,
               title: 'Islamic Foundation Timetable',
               subtitle: 'Official BD Permanent Schedule (Active)',
-              trailing: const Icon(LucideIcons.circleCheck, color: AppColors.activeGreen, size: 20),
-              onTap: () {},
+              trailing: const Icon(
+                LucideIcons.circleCheck,
+                color: AppColors.activeGreen,
+                size: 20,
+              ),
+              onTap: () => _showInfo(
+                context,
+                'Islamic Foundation Timetable',
+                'The official timetable is automatically used for supported Bangladesh districts.',
+              ),
             ),
 
             const SizedBox(height: 20),
@@ -110,19 +122,19 @@ class SettingsScreen extends ConsumerWidget {
               icon: LucideIcons.compass,
               title: 'Qibla Compass (ক্বিবলা কম্পাস)',
               subtitle: 'Find exact direction to Kaaba',
-              onTap: () {},
+              onTap: () => _showUnavailable(context, 'Qibla Compass'),
             ),
             _buildSettingTile(
               icon: LucideIcons.fingerprint,
               title: 'Digital Tasbeeh (ডিজিটাল তাসবীহ)',
               subtitle: 'Track your daily dhikr',
-              onTap: () {},
+              onTap: () => _showUnavailable(context, 'Digital Tasbeeh'),
             ),
             _buildSettingTile(
               icon: LucideIcons.sparkles,
               title: '99 Names of Allah (আল্লাহর ৯৯টি নাম)',
               subtitle: 'With Bengali meaning & references',
-              onTap: () {},
+              onTap: () => _showUnavailable(context, '99 Names of Allah'),
             ),
 
             const SizedBox(height: 20),
@@ -132,19 +144,23 @@ class SettingsScreen extends ConsumerWidget {
               icon: LucideIcons.languages,
               title: 'Language (ভাষা)',
               subtitle: 'English / বাংলা (Bengali)',
-              onTap: () {},
+              onTap: () => _showUnavailable(context, 'Language selection'),
             ),
             _buildSettingTile(
               icon: LucideIcons.bellRing,
               title: 'Adhan & Prayer Alarms',
               subtitle: 'Customize Azan sounds & vibration',
-              onTap: () {},
+              onTap: () => _showUnavailable(context, 'Adhan & prayer alarms'),
             ),
             _buildSettingTile(
               icon: LucideIcons.info,
               title: 'About Deener Alo',
               subtitle: 'Privacy Policy & Terms',
-              onTap: () {},
+              onTap: () => _showInfo(
+                context,
+                'About Deener Alo',
+                'Deener Alo is an offline-first Islamic daily companion.',
+              ),
             ),
           ],
         ),
@@ -163,6 +179,28 @@ class SettingsScreen extends ConsumerWidget {
           color: AppColors.textSubdued,
           letterSpacing: 0.8,
         ),
+      ),
+    );
+  }
+
+  void _showUnavailable(BuildContext context, String feature) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$feature is coming soon.')));
+  }
+
+  void _showInfo(BuildContext context, String title, String message) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }
@@ -201,12 +239,10 @@ class SettingsScreen extends ConsumerWidget {
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.textSubdued,
-          ),
+          style: const TextStyle(fontSize: 12, color: AppColors.textSubdued),
         ),
-        trailing: trailing ??
+        trailing:
+            trailing ??
             const Icon(
               LucideIcons.chevronRight,
               color: AppColors.textSubdued,
