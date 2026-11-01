@@ -19,7 +19,8 @@ class QuranScreen extends StatelessWidget {
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
           children: [
             Container(
               padding: const EdgeInsets.all(20),

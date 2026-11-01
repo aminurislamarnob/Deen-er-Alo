@@ -33,6 +33,14 @@ class PrayerCardWidget extends StatelessWidget {
             width: 32,
             child: Column(
               children: [
+                if (item.type != PrayerType.fajr)
+                  Container(
+                    width: 1.5,
+                    height: 24,
+                    color: AppColors.gold.withValues(alpha: 0.35),
+                  )
+                else
+                  const SizedBox(height: 24),
                 Container(
                   width: 12,
                   height: 12,

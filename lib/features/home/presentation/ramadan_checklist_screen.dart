@@ -83,6 +83,7 @@ class RamadanChecklistScreen extends ConsumerWidget {
                     data: (dayPrayers) {
                       final timeFormat = DateFormat('hh:mm a');
                       return ListView.separated(
+                        padding: EdgeInsets.zero,
                         physics: const BouncingScrollPhysics(),
                         itemCount: dayPrayers.scheduleItems.take(4).length,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),

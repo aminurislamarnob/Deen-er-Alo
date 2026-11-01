@@ -249,7 +249,7 @@ class HomeScreen extends ConsumerWidget {
 
                   // Islamic Tools Grid
                   _buildSectionTitle('ইসলামিক প্রয়োজনীয় টুলস (CORE TOOLS)'),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   _buildToolsGrid(context),
 
                   const SizedBox(height: 22),
@@ -538,6 +538,7 @@ class HomeScreen extends ConsumerWidget {
         return SizedBox(
           height: 98,
           child: ListView.separated(
+            padding: EdgeInsets.zero,
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             itemCount: dayPrayers.scheduleItems.length,
@@ -643,12 +644,13 @@ class HomeScreen extends ConsumerWidget {
     ];
 
     return GridView.builder(
+      padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: tools.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        childAspectRatio: 0.95,
+        childAspectRatio: 0.98,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
       ),

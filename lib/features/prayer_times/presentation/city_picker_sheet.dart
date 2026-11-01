@@ -208,6 +208,8 @@ class _CityPickerSheetState extends ConsumerState<CityPickerSheet> {
                         ),
                       )
                     : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(8, 4, 8, 24),
+                        physics: const BouncingScrollPhysics(),
                         itemCount: _filteredCities.length,
                         itemBuilder: (context, index) {
                           final city = _filteredCities[index];

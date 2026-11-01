@@ -58,6 +58,7 @@ class _DuaScreenState extends State<DuaScreen> {
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
                       itemCount: _categories.length,
                       separatorBuilder: (_, __) => const SizedBox(width: 8),
                       itemBuilder: (context, index) {
@@ -124,7 +125,8 @@ class _DuaScreenState extends State<DuaScreen> {
         (selectedCat['contentList'] as List<dynamic>?) ?? [];
 
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+      physics: const BouncingScrollPhysics(),
       itemCount: contentList.length,
       itemBuilder: (context, index) {
         final dua = contentList[index];

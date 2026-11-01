@@ -23,13 +23,15 @@ class ProhibitedTimesSheet extends ConsumerWidget {
     final currentProhibited = ref.watch(currentProhibitedTimeProvider);
     final timeFormat = DateFormat('hh:mm a');
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -187,6 +189,7 @@ class ProhibitedTimesSheet extends ConsumerWidget {
             ),
           ],
         ],
+        ),
       ),
     );
   }
