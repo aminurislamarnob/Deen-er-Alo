@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app/app.dart';
+import 'app/theme/app_fonts.dart';
 import 'core/services/notification_service.dart';
 import 'core/utils/city_clock.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Bundled fonts' OFL licences on the licence page.
+  AppFonts.registerLicenses();
 
   // Time zone database for city-local prayer times.
   CityClock.ensureInitialized();

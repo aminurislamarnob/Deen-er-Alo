@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../prayer_times/domain/prayer_model.dart';
 import '../../prayer_times/presentation/prayer_providers.dart';
+import '../../../app/theme/app_fonts.dart';
 import '../../settings/presentation/notification_settings_provider.dart';
 
 class RamadanChecklistScreen extends ConsumerWidget {
@@ -55,13 +56,15 @@ class RamadanChecklistScreen extends ConsumerWidget {
                 Center(
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: const Text(
+                    // No letterSpacing: it breaks the joins between Arabic letters.
+                    child: Text(
                       'رَمَضَان كَرِيم',
-                      style: TextStyle(
+                      textDirection: TextDirection.rtl,
+                      style: AppFonts.arabicStyle(
                         color: AppColors.gold,
-                        fontSize: 34,
+                        fontSize: 36,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 2.0,
+                        height: 1.5,
                       ),
                     ),
                   ),

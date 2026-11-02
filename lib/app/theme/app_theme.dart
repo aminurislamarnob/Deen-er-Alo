@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
+import 'app_fonts.dart';
 
 class AppTheme {
   AppTheme._();
 
   static ThemeData get lightTheme {
-    final textTheme = GoogleFonts.plusJakartaSansTextTheme();
+    final textTheme = ThemeData.light().textTheme.apply(
+          fontFamily: AppFonts.ui,
+          fontFamilyFallback: AppFonts.fallback,
+        );
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: AppFonts.ui,
+      fontFamilyFallback: AppFonts.fallback,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.bgLight,
       colorScheme: const ColorScheme.light(
@@ -56,7 +61,9 @@ class AppTheme {
           backgroundColor: AppColors.gold,
           foregroundColor: AppColors.textDark,
           elevation: 0,
-          textStyle: GoogleFonts.plusJakartaSans(
+          textStyle: const TextStyle(
+            fontFamily: AppFonts.ui,
+            fontFamilyFallback: AppFonts.fallback,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -89,7 +96,9 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.primaryDark,
-        contentTextStyle: GoogleFonts.plusJakartaSans(
+        contentTextStyle: const TextStyle(
+          fontFamily: AppFonts.ui,
+          fontFamilyFallback: AppFonts.fallback,
           color: Colors.white,
           fontWeight: FontWeight.w600,
         ),
@@ -100,6 +109,8 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
+          fontFamily: AppFonts.ui,
+          fontFamilyFallback: AppFonts.fallback,
           color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.w700,
@@ -110,13 +121,16 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
-    final textTheme = GoogleFonts.plusJakartaSansTextTheme(
-      ThemeData(brightness: Brightness.dark).textTheme,
-    );
+    final textTheme = ThemeData.dark().textTheme.apply(
+          fontFamily: AppFonts.ui,
+          fontFamilyFallback: AppFonts.fallback,
+        );
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: AppFonts.ui,
+      fontFamilyFallback: AppFonts.fallback,
       primaryColor: AppColors.primaryLight,
       scaffoldBackgroundColor: AppColors.bgDark,
       colorScheme: const ColorScheme.dark(
@@ -151,7 +165,9 @@ class AppTheme {
           backgroundColor: AppColors.gold,
           foregroundColor: Colors.black,
           elevation: 0,
-          textStyle: GoogleFonts.plusJakartaSans(
+          textStyle: const TextStyle(
+            fontFamily: AppFonts.ui,
+            fontFamilyFallback: AppFonts.fallback,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -166,6 +182,8 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
+          fontFamily: AppFonts.ui,
+          fontFamilyFallback: AppFonts.fallback,
           color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.w700,

@@ -37,7 +37,6 @@ dependencies:
   flutter_compass: ^0.8.0
 
   # UI & Design
-  google_fonts: ^6.2.1
   cached_network_image: ^3.4.1
   lucide_icons_flutter: ^4.0.1
   flutter_svg: ^2.3.2
@@ -55,3 +54,35 @@ flutter:
     - assets/images/
     - assets/data/
     - assets/icons/
+    - assets/fonts/licenses/
+
+  # Bundled fonts (SIL OFL 1.1, licences in assets/fonts/licenses/).
+  # Shipped with the app so text renders identically offline / first launch.
+  fonts:
+    - family: PlusJakartaSans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+        - asset: assets/fonts/PlusJakartaSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/PlusJakartaSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/PlusJakartaSans-ExtraBold.ttf
+          weight: 800
+    - family: NotoSansBengali
+      fonts:
+        - asset: assets/fonts/NotoSansBengali-Regular.ttf
+        - asset: assets/fonts/NotoSansBengali-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/NotoSansBengali-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/NotoSansBengali-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/NotoSansBengali-ExtraBold.ttf
+          weight: 800
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/Amiri-Regular.ttf
+        - asset: assets/fonts/Amiri-Bold.ttf
+          weight: 700
