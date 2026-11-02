@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deener_alo/features/prayer_times/data/ifa_timetable_service.dart';
 import 'package:deener_alo/features/prayer_times/data/prayer_engine.dart';
@@ -123,6 +125,68 @@ void main() {
       expect(schedule.fajrStart.minute, equals(46));
       expect(schedule.iftarTime.hour, equals(17));
       expect(schedule.iftarTime.minute, equals(23));
+    });
+
+    test('IFATimetableService handles Leap Year Feb 29 across all 64 Bangladesh districts', () async {
+      final ifaService = IFATimetableService();
+      final leapYearFeb29 = DateTime(2028, 2, 29);
+
+      // Verify Dhaka
+      final dhaka = await ifaService.getSchedule(
+        districtId: 8486,
+        date: leapYearFeb29,
+      );
+      expect(dhaka, isNotNull);
+      expect(dhaka!.sehriEnd.hour, equals(5));
+      expect(dhaka.sehriEnd.minute, equals(1));
+      expect(dhaka.fajrStart.hour, equals(5));
+      expect(dhaka.fajrStart.minute, equals(4));
+      expect(dhaka.iftarTime.hour, equals(18));
+      expect(dhaka.iftarTime.minute, equals(4));
+
+      // Verify Naogaon (district 8545)
+      final naogaon = await ifaService.getSchedule(
+        districtId: 8545,
+        date: leapYearFeb29,
+      );
+      expect(naogaon, isNotNull);
+      expect(naogaon!.sehriEnd.hour, equals(5));
+      expect(naogaon.sehriEnd.minute, equals(7));
+      expect(naogaon.fajrStart.hour, equals(5));
+      expect(naogaon.fajrStart.minute, equals(10));
+      expect(naogaon.iftarTime.hour, equals(18));
+      expect(naogaon.iftarTime.minute, equals(10));
+
+      // Verify Narail (district 8546)
+      final narail = await ifaService.getSchedule(
+        districtId: 8546,
+        date: leapYearFeb29,
+      );
+      expect(narail, isNotNull);
+      expect(narail!.sehriEnd.hour, equals(5));
+      expect(narail.sehriEnd.minute, equals(3));
+      expect(narail.fajrStart.hour, equals(5));
+      expect(narail.fajrStart.minute, equals(6));
+      expect(narail.iftarTime.hour, equals(18));
+      expect(narail.iftarTime.minute, equals(7));
+
+      // Verify all 64 districts have valid non-null schedules on Feb 29
+      final jsonStr = await rootBundle.loadString('assets/data/countries+cities.json');
+      final countries = json.decode(jsonStr) as List<dynamic>;
+      final bd = countries.firstWhere((c) => c['nm'] == 'Bangladesh');
+      final cities = bd['cities'] as List<dynamic>;
+      expect(cities.length, equals(64));
+
+      for (final city in cities) {
+        final id = city['id'] as int;
+        final schedule = await ifaService.getSchedule(
+          districtId: id,
+          date: leapYearFeb29,
+        );
+        expect(schedule, isNotNull, reason: 'District $id (${city['nm']}) failed on Feb 29');
+        expect(schedule!.sehriEnd.hour, greaterThanOrEqualTo(4));
+        expect(schedule.iftarTime.hour, greaterThanOrEqualTo(17));
+      }
     });
   });
 }
