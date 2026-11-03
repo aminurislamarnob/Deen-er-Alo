@@ -7,6 +7,9 @@ import '../data/ifa_timetable_service.dart';
 import '../data/prayer_engine.dart';
 import '../domain/city_model.dart';
 import '../domain/prayer_model.dart';
+import 'prayer_source_provider.dart';
+export '../domain/prayer_source.dart';
+export 'prayer_source_provider.dart';
 
 // Services
 final cityRepositoryProvider = Provider<CityRepository>((ref) {
@@ -119,7 +122,8 @@ final todayPrayerTimesProvider =
       ref.watch(selectedCityProvider).valueOrNull ?? CityModel.dhakaDefault();
   final date = ref.watch(todayDateProvider);
   final engine = ref.watch(prayerEngineProvider);
-  return engine.calculateDayPrayers(city: city, date: date);
+  final source = ref.watch(prayerSourceProvider);
+  return engine.calculateDayPrayers(city: city, date: date, source: source);
 });
 
 /// Today's schedule with `isCurrent`/`isNext` refreshed every second.
@@ -139,7 +143,8 @@ final dayPrayerTimesProvider =
       ref.watch(selectedCityProvider).valueOrNull ?? CityModel.dhakaDefault();
   final date = ref.watch(selectedDateProvider);
   final engine = ref.watch(prayerEngineProvider);
-  return engine.calculateDayPrayers(city: city, date: date);
+  final source = ref.watch(prayerSourceProvider);
+  return engine.calculateDayPrayers(city: city, date: date, source: source);
 });
 
 /// Browsed schedule with live `isCurrent` flags (only today's can be current).

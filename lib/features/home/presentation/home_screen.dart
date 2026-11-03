@@ -11,6 +11,7 @@ import '../../calendar/presentation/hijri_providers.dart';
 import '../../prayer_times/domain/prayer_model.dart';
 import '../../prayer_times/presentation/city_picker_sheet.dart';
 import '../../prayer_times/presentation/prayer_providers.dart';
+import '../../prayer_times/presentation/prayer_source_picker_sheet.dart';
 import '../../settings/presentation/notification_settings_provider.dart';
 import '../../prayer_times/presentation/prohibited_times_sheet.dart';
 import '../data/hadith_repository.dart';
@@ -208,14 +209,35 @@ class HomeScreen extends ConsumerWidget {
                                   ],
                                 ),
                               ),
-                              Text(
-                                city?.isBangladeshDistrict == true
-                                    ? 'ইফা সময়সূচি'
-                                    : 'Karachi Method',
-                                style: const TextStyle(
-                                  color: AppColors.goldLight,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
+                              InkWell(
+                                onTap: () => PrayerSourcePickerSheet.show(context),
+                                borderRadius: BorderRadius.circular(8),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 2,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        city?.isBangladeshDistrict == true
+                                            ? ref.watch(prayerSourceProvider).shortName
+                                            : 'Karachi Method',
+                                        style: const TextStyle(
+                                          color: AppColors.goldLight,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      const Icon(
+                                        LucideIcons.chevronRight,
+                                        color: AppColors.goldLight,
+                                        size: 10,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],

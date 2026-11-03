@@ -50,6 +50,7 @@ class SystemSyncController with WidgetsBindingObserver {
     });
     _ref.listen(notificationSettingsProvider, (_, __) => requestSync());
     _ref.listen(moonOffsetProvider, (_, __) => requestSync());
+    _ref.listen(prayerSourceProvider, (_, __) => requestSync());
 
     requestSync();
     _askNotificationPermissionOnce();
@@ -104,8 +105,10 @@ class SystemSyncController with WidgetsBindingObserver {
 
     await _ref.read(notificationSettingsProvider.notifier).ready;
     await _ref.read(moonOffsetProvider.notifier).ready;
+    await _ref.read(prayerSourceProvider.notifier).ready;
     final settings = _ref.read(notificationSettingsProvider);
     final moonOffset = _ref.read(moonOffsetProvider);
+    final source = _ref.read(prayerSourceProvider);
     final engine = _ref.read(prayerEngineProvider);
     final habits = _ref.read(habitRepositoryProvider);
 
@@ -116,7 +119,11 @@ class SystemSyncController with WidgetsBindingObserver {
     final fastingDays = <DateTime>{};
     for (var i = 0; i <= PrayerAlarmScheduler.horizonDays; i++) {
       final date = DateTime(today.year, today.month, today.day + i);
-      days.add(await engine.calculateDayPrayers(city: city, date: date));
+      days.add(await engine.calculateDayPrayers(
+        city: city,
+        date: date,
+        source: source,
+      ));
       if (await _isFastingDay(date, moonOffset, habits)) fastingDays.add(date);
     }
 

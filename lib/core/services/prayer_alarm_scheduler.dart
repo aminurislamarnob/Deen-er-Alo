@@ -3,6 +3,7 @@ import 'package:hijri/hijri_calendar.dart';
 import '../../features/prayer_times/data/prayer_engine.dart';
 import '../../features/prayer_times/domain/city_model.dart';
 import '../../features/prayer_times/domain/prayer_model.dart';
+import '../../features/prayer_times/domain/prayer_source.dart';
 import '../../features/settings/domain/notification_settings.dart';
 import '../utils/bangla_numbers.dart';
 import '../utils/city_clock.dart';
@@ -70,6 +71,7 @@ class PrayerAlarmScheduler {
     FastingDayPredicate isFastingDay = isRamadanDay,
     DateTime? now,
     List<DayPrayerTimes>? precomputedDays,
+    PrayerCalculationSource source = PrayerCalculationSource.ifb,
   }) async {
     if (!_notificationService.isInitialized) {
       await _notificationService.init();
@@ -93,6 +95,7 @@ class PrayerAlarmScheduler {
         days.add(await _prayerEngine.calculateDayPrayers(
           city: city,
           date: date,
+          source: source,
         ));
       } catch (e) {
         debugPrint('Alarm planning failed for $date: $e');

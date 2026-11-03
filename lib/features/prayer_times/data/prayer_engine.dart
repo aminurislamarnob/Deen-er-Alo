@@ -2,6 +2,7 @@ import 'package:adhan/adhan.dart';
 import '../../../core/utils/city_clock.dart';
 import '../domain/city_model.dart';
 import '../domain/prayer_model.dart';
+import '../domain/prayer_source.dart';
 import 'ifa_timetable_service.dart';
 
 class PrayerEngine {
@@ -22,6 +23,7 @@ class PrayerEngine {
     required CityModel city,
     required DateTime date,
     DateTime? now,
+    PrayerCalculationSource source = PrayerCalculationSource.ifb,
   }) async {
     final zone = city.effectiveTimeZone;
     final day = CityClock.dateOnly(date);
@@ -32,35 +34,57 @@ class PrayerEngine {
     final tomorrow = _adhanDay(city, nextDay);
 
     DateTime fajr = today.fajr;
-    final DateTime sunrise = today.sunrise;
-    final DateTime dhuhr = today.dhuhr;
-    final DateTime asr = today.asr;
+    DateTime sunrise = today.sunrise;
+    DateTime dhuhr = today.dhuhr;
+    DateTime asr = today.asr;
     DateTime maghrib = today.maghrib;
-    final DateTime isha = today.isha;
+    DateTime isha = today.isha;
     DateTime nextFajr = tomorrow.fajr;
 
     DateTime? sehriEnd;
     DateTime? iftarTime;
 
-    // Bangladesh Islamic Foundation (IFA) timetable override. IFA times are
+    final isBd = _isBangladesh(city) && zone == 'Asia/Dhaka';
+
+    // Bangladesh Islamic Foundation (IFB) timetable override. IFB times are
     // Asia/Dhaka wall-clock times, which is the zone of every BD district.
-    if (_isBangladesh(city) && zone == 'Asia/Dhaka') {
-      final ifa = await _safeIfa(city.id, day);
-      if (ifa != null &&
-          _withinTolerance(ifa.fajrStart, fajr) &&
-          _withinTolerance(ifa.iftarTime, maghrib)) {
-        sehriEnd = ifa.sehriEnd;
-        fajr = ifa.fajrStart;
-        iftarTime = ifa.iftarTime;
-        maghrib = ifa.iftarTime;
+    if (isBd && source == PrayerCalculationSource.ifb) {
+      final ifb = await _safeIfa(city.id, day);
+      if (ifb != null &&
+          _withinTolerance(ifb.fajrStart, fajr) &&
+          _withinTolerance(ifb.iftarTime, maghrib)) {
+        sehriEnd = ifb.sehriEnd;
+        fajr = ifb.fajrStart;
+        iftarTime = ifb.iftarTime;
+        maghrib = ifb.iftarTime;
+
+        // If Dhaka (district 8486), use official table values for all 5 prayers
+        if (city.id == 8486) {
+          if (ifb.sunrise != null) sunrise = ifb.sunrise!;
+          if (ifb.dhuhr != null) dhuhr = ifb.dhuhr!;
+          if (ifb.asr != null) asr = ifb.asr!;
+          if (ifb.isha != null) isha = ifb.isha!;
+        } else {
+          // Other BD districts: sunrise, Asr, Isha use Karachi/Hanafi calculation.
+          // Dhuhr adds IFB's +3 min precaution (Footnote গ & খ).
+          dhuhr = today.dhuhr.add(const Duration(minutes: 3));
+        }
       }
-      final nextIfa = await _safeIfa(city.id, nextDay);
-      if (nextIfa != null && _withinTolerance(nextIfa.fajrStart, nextFajr)) {
-        nextFajr = nextIfa.fajrStart;
+      final nextIfb = await _safeIfa(city.id, nextDay);
+      if (nextIfb != null && _withinTolerance(nextIfb.fajrStart, nextFajr)) {
+        nextFajr = nextIfb.fajrStart;
       }
     }
 
-    sehriEnd ??= fajr.subtract(const Duration(minutes: 3));
+    // Sehri / Iftar fallback or Karachi mode:
+    // In Bangladesh, keep 3-minute Sehri precaution (Sehri = dawn - 3 min).
+    if (sehriEnd == null) {
+      if (isBd) {
+        sehriEnd = today.fajr.subtract(const Duration(minutes: 3));
+      } else {
+        sehriEnd = fajr.subtract(const Duration(minutes: 3));
+      }
+    }
     iftarTime ??= maghrib;
 
     final base = DayPrayerTimes(
@@ -280,22 +304,22 @@ class PrayerEngine {
         title: 'Sunrise (সূর্যোদয়)',
         bengaliTitle: 'সূর্যোদয়ের সময়',
         startTime: dayPrayers.sunrise,
-        endTime: dayPrayers.sunrise.add(const Duration(minutes: 15)),
-        reason: 'সূর্য ওঠার সময় থেকে আনুমানিক ১৫ মিনিট পর্যন্ত নামাজ পড়া নিষিদ্ধ।',
+        endTime: dayPrayers.sunrise.add(const Duration(minutes: 24)),
+        reason: 'সূর্য ওঠার সময় থেকে পরবর্তী ২৪ মিনিট পর্যন্ত নামাজ পড়া নিষিদ্ধ।',
       ),
       ProhibitedTimeRange(
         title: 'Midday Zenith (দ্বিপ্রহর / যাওয়াল)',
         bengaliTitle: 'ঠিক দ্বিপ্রহরের সময়',
-        startTime: dayPrayers.dhuhr.subtract(const Duration(minutes: 10)),
+        startTime: dayPrayers.dhuhr.subtract(const Duration(minutes: 6)),
         endTime: dayPrayers.dhuhr,
-        reason: 'সূর্য ঠিক মাথার ওপর থাকা অবস্থায় (যোহরের ওয়াক্ত হওয়ার পূর্বের ১০ মিনিট) নামাজ নিষিদ্ধ।',
+        reason: 'সূর্য ঠিক মাথার ওপর থাকা অবস্থায় (যোহরের ওয়াক্ত হওয়ার পূর্বের ৬ মিনিট) নামাজ নিষিদ্ধ।',
       ),
       ProhibitedTimeRange(
         title: 'Sunset (সূর্যাস্ত)',
         bengaliTitle: 'সূর্যাস্তের সময়',
-        startTime: dayPrayers.maghrib.subtract(const Duration(minutes: 15)),
+        startTime: dayPrayers.maghrib.subtract(const Duration(minutes: 24)),
         endTime: dayPrayers.maghrib,
-        reason: 'সূর্য ডোবার পূর্ববর্তী আনুমানিক ১৫ মিনিট (সূর্য হলুদ বর্ণ ধারণ থেকে ডোবা পর্যন্ত) নামাজ নিষিদ্ধ (সেদিনের আসর কাজা না থাকলে)।',
+        reason: 'সূর্য ডোবার পূর্ববর্তী ২৪ মিনিট নামাজ নিষিদ্ধ (সেদিনের আসর কাজা না থাকলে)।',
       ),
     ];
   }

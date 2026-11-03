@@ -1,0 +1,4 @@
+month,day,column,printed,corrected,reason
+6,24,maghrib_iftar,5:53,6:53,59-minute typo in printed IFB PDF (neighbors are 6:51 and 6:53)
+6,30,sehri,3:43,3:42,printed breaks Fajr = Sehri + 6 rule; Jul 1 is 3:42/3:48; earlier is safe for fasting
+11,24,fajr,5:00,5:02,printed breaks Fajr = Sehri + 6 rule with Sehri 4:56; Sehri matches Karachi calculation

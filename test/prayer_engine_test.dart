@@ -122,7 +122,7 @@ void main() {
       expect(schedule!.sehriEnd.hour, equals(4));
       expect(schedule.sehriEnd.minute, equals(43));
       expect(schedule.fajrStart.hour, equals(4));
-      expect(schedule.fajrStart.minute, equals(46));
+      expect(schedule.fajrStart.minute, equals(49)); // Official IFB rule: Fajr = Sehri + 6
       expect(schedule.iftarTime.hour, equals(17));
       expect(schedule.iftarTime.minute, equals(23));
     });
@@ -140,35 +140,57 @@ void main() {
       expect(dhaka!.sehriEnd.hour, equals(5));
       expect(dhaka.sehriEnd.minute, equals(1));
       expect(dhaka.fajrStart.hour, equals(5));
-      expect(dhaka.fajrStart.minute, equals(4));
+      expect(dhaka.fajrStart.minute, equals(7)); // Official IFB: Fajr = Sehri + 6
       expect(dhaka.iftarTime.hour, equals(18));
-      expect(dhaka.iftarTime.minute, equals(4));
+      expect(dhaka.iftarTime.minute, equals(5));
 
-      // Verify Naogaon (district 8545)
+      // Verify Naogaon (district 8545: official offset +8m)
       final naogaon = await ifaService.getSchedule(
         districtId: 8545,
         date: leapYearFeb29,
       );
       expect(naogaon, isNotNull);
       expect(naogaon!.sehriEnd.hour, equals(5));
-      expect(naogaon.sehriEnd.minute, equals(7));
+      expect(naogaon.sehriEnd.minute, equals(9)); // 5:01 + 8m = 5:09
       expect(naogaon.fajrStart.hour, equals(5));
-      expect(naogaon.fajrStart.minute, equals(10));
+      expect(naogaon.fajrStart.minute, equals(15)); // 5:07 + 8m = 5:15
       expect(naogaon.iftarTime.hour, equals(18));
-      expect(naogaon.iftarTime.minute, equals(10));
+      expect(naogaon.iftarTime.minute, equals(13)); // 18:05 + 8m = 18:13
 
-      // Verify Narail (district 8546)
+      // Verify Narail (district 8546: official offset +3m)
       final narail = await ifaService.getSchedule(
         districtId: 8546,
         date: leapYearFeb29,
       );
       expect(narail, isNotNull);
       expect(narail!.sehriEnd.hour, equals(5));
-      expect(narail.sehriEnd.minute, equals(3));
+      expect(narail.sehriEnd.minute, equals(4)); // 5:01 + 3m = 5:04
       expect(narail.fajrStart.hour, equals(5));
-      expect(narail.fajrStart.minute, equals(6));
+      expect(narail.fajrStart.minute, equals(10)); // 5:07 + 3m = 5:10
       expect(narail.iftarTime.hour, equals(18));
-      expect(narail.iftarTime.minute, equals(7));
+      expect(narail.iftarTime.minute, equals(8)); // 18:05 + 3m = 18:08
+
+      // Verify Moulvibazar (district 8533: official offset -6m, regression guard for swap)
+      final moulvibazar = await ifaService.getSchedule(
+        districtId: 8533,
+        date: leapYearFeb29,
+      );
+      expect(moulvibazar, isNotNull);
+      expect(moulvibazar!.sehriEnd.hour, equals(4));
+      expect(moulvibazar.sehriEnd.minute, equals(55)); // 5:01 - 6m = 4:55
+      expect(moulvibazar.fajrStart.hour, equals(5));
+      expect(moulvibazar.fajrStart.minute, equals(1));   // 5:07 - 6m = 5:01
+
+      // Verify Meherpur (district 8536: official offset +7m, regression guard for swap)
+      final meherpur = await ifaService.getSchedule(
+        districtId: 8536,
+        date: leapYearFeb29,
+      );
+      expect(meherpur, isNotNull);
+      expect(meherpur!.sehriEnd.hour, equals(5));
+      expect(meherpur.sehriEnd.minute, equals(8));  // 5:01 + 7m = 5:08
+      expect(meherpur.fajrStart.hour, equals(5));
+      expect(meherpur.fajrStart.minute, equals(14)); // 5:07 + 7m = 5:14
 
       // Verify all 64 districts have valid non-null schedules on Feb 29
       final jsonStr = await rootBundle.loadString('assets/data/countries+cities.json');
@@ -186,6 +208,11 @@ void main() {
         expect(schedule, isNotNull, reason: 'District $id (${city['nm']}) failed on Feb 29');
         expect(schedule!.sehriEnd.hour, greaterThanOrEqualTo(4));
         expect(schedule.iftarTime.hour, greaterThanOrEqualTo(17));
+        expect(
+          schedule.fajrStart.difference(schedule.sehriEnd).inMinutes,
+          equals(6),
+          reason: 'Fajr must equal Sehri + 6 in district $id (${city['nm']})',
+        );
       }
     });
   });

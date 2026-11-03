@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../prayer_times/presentation/city_picker_sheet.dart';
 import '../../prayer_times/presentation/prayer_providers.dart';
+import '../../prayer_times/presentation/prayer_source_picker_sheet.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -12,6 +13,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCity = ref.watch(selectedCityProvider).value;
+    final prayerSource = ref.watch(prayerSourceProvider);
     final locationLabel = selectedCity != null
         ? '${selectedCity.name}, ${selectedCity.countryName}'
         : 'Dhaka, Bangladesh';
@@ -92,18 +94,19 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _buildSettingTile(
               icon: LucideIcons.landmark,
-              title: 'Calculation Method',
-              subtitle: 'University of Islamic Sciences, Karachi (Hanafi)',
-              onTap: () => _showInfo(
-                context,
-                'Calculation Method',
-                'Prayer times use the Karachi method unless an official Bangladesh Islamic Foundation timetable is available for the selected district.',
+              title: 'নামাজের সময়ের উৎস',
+              subtitle: prayerSource.displayName,
+              trailing: const Icon(
+                LucideIcons.chevronRight,
+                color: AppColors.textSubdued,
+                size: 18,
               ),
+              onTap: () => PrayerSourcePickerSheet.show(context),
             ),
             _buildSettingTile(
               icon: LucideIcons.badgeCheck,
               title: 'Islamic Foundation Timetable',
-              subtitle: 'Official BD Permanent Schedule (Active)',
+              subtitle: 'Official Bangladesh Permanent Schedule',
               trailing: const Icon(
                 LucideIcons.circleCheck,
                 color: AppColors.activeGreen,
@@ -111,8 +114,8 @@ class SettingsScreen extends ConsumerWidget {
               ),
               onTap: () => _showInfo(
                 context,
-                'Islamic Foundation Timetable',
-                'The official timetable is automatically used for supported Bangladesh districts.',
+                'Islamic Foundation Bangladesh',
+                'নামাজের সময়সূচি ইসলামিক ফাউন্ডেশন বাংলাদেশ কর্তৃক প্রকাশিত স্থায়ী ক্যালেন্ডার অনুযায়ী প্রণীত।',
               ),
             ),
 
