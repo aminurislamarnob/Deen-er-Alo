@@ -181,7 +181,7 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () => _showInfo(
                 context,
                 'About Deener Alo',
-                'Deener Alo is an offline-first Islamic daily companion.',
+                'Deener Alo is an offline-first Islamic daily companion. Prayer times in Bangladesh are sourced from the official Islamic Foundation Bangladesh (IFB) permanent calendar.',
               ),
             ),
           ],

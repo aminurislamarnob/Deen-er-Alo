@@ -228,5 +228,75 @@ void main() {
       expect(ranges[2].endTime.difference(ranges[2].startTime).inMinutes, equals(24));
       expect(ranges[2].reason, contains('২৪ মিনিট'));
     });
+
+    test('8. ifaTolerance (20 min) is never triggered across all 64 districts on representative dates', () async {
+      final jsonStr = await rootBundle.loadString('assets/data/countries+cities.json');
+      final countries = json.decode(jsonStr) as List<dynamic>;
+      final bd = countries.firstWhere((c) => c['nm'] == 'Bangladesh');
+      final cities = (bd['cities'] as List<dynamic>).map((c) {
+        final m = c as Map<String, dynamic>;
+        return CityModel(
+          id: m['id'] as int,
+          name: m['nm'] as String,
+          countryName: 'Bangladesh',
+          countryEmoji: '🇧🇩',
+          latitude: (m['lt'] as num).toDouble(),
+          longitude: (m['ln'] as num).toDouble(),
+          isBangladeshDistrict: true,
+          timeZone: 'Asia/Dhaka',
+        );
+      }).toList();
+
+      final sampleDates = [
+        DateTime(2028, 1, 15),
+        DateTime(2028, 4, 15),
+        DateTime(2028, 7, 15),
+        DateTime(2028, 10, 15),
+      ];
+
+      for (final city in cities) {
+        for (final date in sampleDates) {
+          final prayers = await engine.calculateDayPrayers(
+            city: city,
+            date: date,
+            source: PrayerCalculationSource.ifb,
+          );
+          final ifb = await ifbService.getSchedule(districtId: city.id, date: date);
+          expect(ifb, isNotNull);
+          // Timetable must be used directly, meaning ifaTolerance did not trigger fallback
+          expect(prayers.fajr, equals(ifb!.fajrStart), reason: 'Tolerance fallback triggered on ${city.name} at $date');
+          expect(prayers.iftar, equals(ifb.iftarTime), reason: 'Tolerance fallback triggered on ${city.name} at $date');
+        }
+      }
+    });
+
+    test('9. Karachi calculation vs IFB Dhaka agrees within ±4 minutes across representative dates', () async {
+      final testDates = [
+        DateTime(2028, 1, 1),
+        DateTime(2028, 3, 1),
+        DateTime(2028, 6, 1),
+        DateTime(2028, 9, 1),
+        DateTime(2028, 12, 1),
+      ];
+
+      for (final date in testDates) {
+        final ifb = await engine.calculateDayPrayers(
+          city: dhaka,
+          date: date,
+          source: PrayerCalculationSource.ifb,
+        );
+        final karachi = await engine.calculateDayPrayers(
+          city: dhaka,
+          date: date,
+          source: PrayerCalculationSource.karachi,
+        );
+
+        final fajrDiff = (ifb.fajr.difference(karachi.fajr).inMinutes).abs();
+        final maghribDiff = (ifb.maghrib.difference(karachi.maghrib).inMinutes).abs();
+
+        expect(fajrDiff, lessThanOrEqualTo(4), reason: 'Fajr deviation > 4m at $date');
+        expect(maghribDiff, lessThanOrEqualTo(4), reason: 'Maghrib deviation > 4m at $date');
+      }
+    });
   });
 }
